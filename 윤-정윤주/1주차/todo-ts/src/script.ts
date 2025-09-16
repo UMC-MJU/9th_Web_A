@@ -30,6 +30,18 @@ const renderTasks = (): void => {
     })
 };
 
+// 할 일 텍스트 입력 처리 함수
+const getTodoText = (): string => {
+    return todoInput.value.trim(); // 앞 뒤 공백 제거한 값
+};
+
+// 할 일 추가 처리 함수
+const addTodo = (text: string): void => {
+    todos.push({id: Date.now(), text });
+    todoInput.value = '';  // 입력창 초기화
+    renderTasks(); // 배열 상태 변경 직후 화면 갱신
+};
+
 // 할 일 상태 변경 함수 (완료로 이동)
 const completeTodo = (todo: Todo): void => {
     //조건에 맞는 새 배열 만들어서 todos에 다시 할당
@@ -73,3 +85,14 @@ const createTodoElement = (todo: Todo, isDone: boolean): HTMLLIElement => {
     li.appendChild(button);
     return li;   // renderTasks에서 todoList.appendChild(li) 등으로 DOM에 삽입
 };
+
+// 폼 제출 이벤트 리스너
+todoForm.addEventListener('submit', (event: Event): void => {
+    event.preventDefault(); // 기본 폼 제출 동작(새로고침) 방지
+    const text = getTodoText();
+    if (text) {
+        addTodo(text);
+    }
+});
+
+renderTasks(); // 페이지 로드 시 초기 화면 렌더링
