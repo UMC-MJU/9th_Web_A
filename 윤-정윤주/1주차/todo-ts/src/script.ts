@@ -6,7 +6,7 @@ const doneList = document.getElementById('done-list') as HTMLUListElement;
 
 // Todo 데이터 타입 정의
 type Todo = {
-    id: number;  // 고유 아이디
+    id: number;
     text: string;
 }
 
@@ -32,21 +32,20 @@ const renderTasks = (): void => {
 
 // 할 일 텍스트 입력 처리 함수
 const getTodoText = (): string => {
-    return todoInput.value.trim(); // 앞 뒤 공백 제거한 값
+    return todoInput.value.trim();
 };
 
 // 할 일 추가 처리 함수
 const addTodo = (text: string): void => {
     todos.push({id: Date.now(), text });
-    todoInput.value = '';  // 입력창 초기화
-    renderTasks(); // 배열 상태 변경 직후 화면 갱신
+    todoInput.value = '';
+    renderTasks();
 };
 
 // 할 일 상태 변경 함수 (완료로 이동)
 const completeTodo = (todo: Todo): void => {
-    //조건에 맞는 새 배열 만들어서 todos에 다시 할당
     todos = todos.filter((t): boolean => t.id !== todo.id);
-    doneTasks.push(todo); // doneTasks 배열로 이동
+    doneTasks.push(todo);
     renderTasks();
 };
 
@@ -57,11 +56,10 @@ const deleteTodo = (todo: Todo): void => {
 };
 
 // 할 일 아이템(li) 생성 함수
-// 반환값: HTMLLIElement -> 생성된 li 태그 반환해서 renderTasks 함수에서 append 가능
 const createTodoElement = (todo: Todo, isDone: boolean): HTMLLIElement => {
     const li = document.createElement('li');
     li.classList.add('render-container__item');
-    li.textContent = todo.text;  // li 안에 텍스트 노드 생성
+    li.textContent = todo.text;
 
     const button = document.createElement('button');
     button.classList.add('render-container__item-button');
@@ -83,16 +81,16 @@ const createTodoElement = (todo: Todo, isDone: boolean): HTMLLIElement => {
     });
 
     li.appendChild(button);
-    return li;   // renderTasks에서 todoList.appendChild(li) 등으로 DOM에 삽입
+    return li;
 };
 
 // 폼 제출 이벤트 리스너
 todoForm.addEventListener('submit', (event: Event): void => {
-    event.preventDefault(); // 기본 폼 제출 동작(새로고침) 방지
+    event.preventDefault();
     const text = getTodoText();
     if (text) {
         addTodo(text);
     }
 });
 
-renderTasks(); // 페이지 로드 시 초기 화면 렌더링
+renderTasks();
