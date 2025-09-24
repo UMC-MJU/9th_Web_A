@@ -20,7 +20,7 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
+    "erasableSyntaxOnly": false,  // 내부 할당 방식 사용
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
