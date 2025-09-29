@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
-interface ImportMeataEnv {
-    readonly VITE_API_KEY: string;
+interface ImportMetaEnv {
+    readonly VITE_TMDB_KEY: string;
 }
 
 interface ImportMeta {
-    readonly env: ImportMeataEnv;
+    readonly env: ImportMetaEnv;
 }   
