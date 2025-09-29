@@ -3,6 +3,7 @@ import axios from "axios";
 import { type MoviesResponse, type Movie } from "../types/movie";
 import MovieCard from "../components/MovieCard";
 import { LoadingSpinner } from "../components/LoadingSpinner";
+import { useParams } from "react-router-dom";
 
 export default function MoviePage() {
     const [movies, setMovies] = useState<Movie[]>([]);
@@ -12,13 +13,18 @@ export default function MoviePage() {
     const [isError, setIsError] = useState(false);
     // 3. 페이지 상태(페이지가 몇 번째인지)
     const [page, setPage] = useState(1);
+    // 4. 카테고리 상태(현재 어떤 카테고리인지)
+    //  => URL 파라미터로 받아오기
+    const { category } = useParams<{  // 구조 분해 할당
+        category: string;
+    }>();
 
     useEffect(() => {
         const fetchMovies = async () => {
             setIsPending(true);
             try {
                 const { data } = await axios.get<MoviesResponse>(
-                    `https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=${page}`,
+                    `https://api.themoviedb.org/3/movie/${category}?language=ko-KR&page=${page}`,
                     {
                         headers: {
                             Authorization: `Bearer ${import.meta.env.VITE_TMDB_KEY}`,
@@ -27,6 +33,7 @@ export default function MoviePage() {
                 );
 
                 setMovies(data.results);
+                setIsError(false);  // 성공 시 에러 상태 초기화
                 // setIsPending(false);
             } catch {
                 setIsError(true);
@@ -37,7 +44,7 @@ export default function MoviePage() {
         };
 
         fetchMovies();
-    }, [page]); // page가 바뀔 때마다 useEffect 재실행 => 페이지 이동 가능(에러 처리도 가능)
+    }, [page, category]); // 페이지 혹은 카테고리가 바뀔 때마다 useEffect 재실행
 
     if (isError) {
         return (
