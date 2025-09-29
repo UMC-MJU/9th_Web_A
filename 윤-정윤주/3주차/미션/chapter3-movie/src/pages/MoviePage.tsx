@@ -39,10 +39,6 @@ export default function MoviePage() {
         fetchMovies();
     }, [page]); // page가 바뀔 때마다 useEffect 재실행 => 페이지 이동 가능(에러 처리도 가능)
 
-    // if (isPending) {
-    //     return <LoadingSpinner />;  // 로딩 중일 때 로딩 스피너 컴포넌트 렌더링
-    // }
-
     if (isError) {
         return (
             <div>
@@ -70,13 +66,21 @@ export default function MoviePage() {
                     {`>`}
                 </button>
             </div>
-            
-            <div className='p-10 grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 
-            lg:grid-cols-5 xl:grid-cols-6'>
-                {movies.map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} />
-                ))}
-            </div>
+
+            {isPending && (
+                <div className="flex items-center justify-center h-dvh">
+                    <LoadingSpinner />
+                </div>
+            )}
+
+            {!isPending && (
+                <div className='p-10 grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 
+                lg:grid-cols-5 xl:grid-cols-6'>
+                    {movies.map((movie) => (
+                        <MovieCard key={movie.id} movie={movie} />
+                    ))}
+                </div>
+            )}
         </>
 
     );
