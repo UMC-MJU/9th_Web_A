@@ -20,6 +20,11 @@ export default function MoviePage() {
         category: string;
     }>();
 
+    // 카테고리 변경 시 1페이지로 초기화
+    useEffect(() => {
+        setPage(1);
+    }, [category]);
+
     useEffect(() => {
         const fetchMovies = async () => {
             setIsPending(true);
