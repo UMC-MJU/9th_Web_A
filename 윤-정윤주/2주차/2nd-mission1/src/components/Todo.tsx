@@ -1,5 +1,5 @@
 import TodoForm from "./TodoForm";
-import TodoList from "./TodoList";
+import TodoList from "./TodoList/TodoList";
 import { useTodo } from "../context/TodoContext";
 
 const Todo = () => {
