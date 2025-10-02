@@ -3,19 +3,17 @@ import { createContext, useContext, useState, type PropsWithChildren } from "rea
 export enum THEME {
     LIGHT = 'LIGHT',
     DARK = 'DARK',
-};
-
-type TTheme = THEME.LIGHT | THEME.DARK;
+}
 
 interface IThemeContext {
-    theme: TTheme;
+    theme: THEME;
     toggleTheme: () => void;
 }
 
 export const ThemeContext = createContext<IThemeContext | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
-    const [theme, setTheme] = useState<TTheme>(THEME.LIGHT);
+    const [theme, setTheme] = useState<THEME>(THEME.LIGHT);
 
     const toggleTheme = () => {
         setTheme((prevTheme) => prevTheme === THEME.LIGHT ? THEME.DARK : THEME.LIGHT);
