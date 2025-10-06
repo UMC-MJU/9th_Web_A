@@ -1,56 +1,34 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { MovieDetails } from "../types/movieDetails";
 import type { Credits } from "../types/Credits";
-import axios from "axios";
 import { LoadingSpinner } from "../components/LoadingSpinner";
+import { useCustomFetch } from "../hooks/useCustomFetch";
 
 export default function MovieDetailPage() {
     const { movieId } = useParams<{ movieId: string }>();
-    const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null);
-    const [credits, setCredits] = useState<Credits | null>(null);
-    // 1. 로딩 상태
-    const [isPending, setIsPending] = useState(false);
-    // 2. 에러 상태(에러 상태 인지만 판단)
-    const [isError, setIsError] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsPending(true);
-            setIsError(false);
+    // 영화 상세 정보
+    // 별칭 사용: useCustomFetch 반환값 이름 충돌 방지
+    const {
+        data: movieDetails,
+        isPending: isMoviePending,
+        isError: isMovieError
+    } = useCustomFetch<MovieDetails>(
+        `https://api.themoviedb.org/3/movie/${movieId}?language=ko-KR`,
+        [movieId]
+    );
 
-            try {
-                const movieDetailsReponse = await axios.get(
-                    `https://api.themoviedb.org/3/movie/${movieId}?language=ko-KR`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_KEY}`,
-                        },
-                    }
-                );
-                setMovieDetails(movieDetailsReponse.data);
+    // 크레딧 정보
+    const {
+        data: credits,
+        isPending: isCreditsPending,
+        isError: isCreditsError
+    } = useCustomFetch<Credits>(
+        `https://api.themoviedb.org/3/movie/${movieId}/credits?language=ko-KR`, 
+        [movieId]
+    );
 
-                const creditsResponse = await axios.get(
-                    `https://api.themoviedb.org/3/movie/${movieId}/credits?language=ko-KR`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_KEY}`,
-                        },
-                    }
-                );
-                setCredits(creditsResponse.data);
-
-                setIsPending(false);
-            } catch (error) {
-                setIsError(true);
-                setIsPending(false);
-            }
-        };
-
-        fetchData();
-    }, [movieId]);
-
-    if (isError) {
+    if (isMovieError || isCreditsError) {
         return (
             <div>
                 <span className="text-red-500 text-2xl">에러가 발생했습니다.</span>
@@ -58,7 +36,7 @@ export default function MovieDetailPage() {
         );
     }
 
-    if (isPending) {
+    if (isMoviePending || isCreditsPending) {
         return (
             <div className="flex items-center justify-center h-dvh">
                 <LoadingSpinner />
