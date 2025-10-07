@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA-HistoryAPI</title>
+</head>
+<body>
+    <nav>
+        <a href="/" data-link>Home</a>
+        <a href="/about" data-link>About</a>
+        <a href="/contact" data-link>Contact</a>
+    </nav>
+    <div id="app"></div>
+
+    <script>
+        const routes = {
+            "/": "<h1>Home Page</h1>",
+            "/about": "<h1>About Page</h1>",
+            "/contact": "<h1>Contact Page</h1>"
+        };
+
+        // 렌더링 함수
+        function render(path) {
+            const app = document.getElementById("app");
+            app.innerHTML = routes[path] || "<h1>404 Not Found</h1>";
+        }
+
+        //pushState를 이용한 페이지 이동 함수
+        function navigate(event) {
+            event.preventDefault(); // 기본 링크 동작 방지
+            const path = event.target.getAttribute("href");
+            window.history.pushState({}, "", path);
+            render(path);
+        }
+
+        // 뒤로가기/앞으로가기 이벤트 처리
+        window.addEventListener("popstate", () => {
+            render(window.location.pathname);
+        });
+
+        // 링크 클릭 이벤트 처리
+        document.querySelectorAll("[data-link]").forEach(link => {
+            link.addEventListener("click", navigate);
+        });
+
+        // 초기 렌더링
+        render(window.location.pathname);
+    </script>
+</body>
+</html>
