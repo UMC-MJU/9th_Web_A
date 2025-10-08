@@ -37,6 +37,9 @@ const LoginPage = () => {
                     type={"password"}
                     placeholder="비밀번호"
                 />
+                {errors?.password && touched?.password && (
+                    <div className="text-red-500 text-sm">{errors.password}</div>
+                )}
                 <button 
                     type="button" 
                     onClick={handleSubmit} 
