@@ -18,7 +18,7 @@ function validateUser(values: UserSigninInformation) {
     }
 
     // 비밀번호는 8자 이상 20자 이하
-    if (values.password.length < 8 || values.password.length > 20) {
+    if (values.password.length <= 8 || values.password.length >= 20) {
         errors.password = '비밀번호는 8자 이상 20자 이하로 입력해주세요.';
     }
 
