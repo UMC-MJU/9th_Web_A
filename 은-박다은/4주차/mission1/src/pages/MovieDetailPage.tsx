@@ -1,65 +1,53 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import { useCustomFetch } from "../hooks/useCustomFetch";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 import type { MovieDetails } from "../types/movieDetail";
 import type { Credits } from "../types/Credits";
-import { LoadingSpinner } from "../components/LoadingSpinner";
 
 const MovieDetailPage = () => {
   const { movieId } = useParams<{ movieId: string }>();
-  const [movie, setMovie] = useState<MovieDetails | null>(null);
-  const [credits, setCredits] = useState<Credits | null>(null);
-  const [isPending, setIsPending] = useState(false);
-  const [isError, setIsError] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsPending(true);
-      setIsError(false);
+  // ✅ 커스텀 훅으로 영화 상세, 출연진 데이터 요청
+  const {
+    data: movie,
+    loading: movieLoading,
+    error: movieError,
+  } = useCustomFetch<MovieDetails>(
+    `https://api.themoviedb.org/3/movie/${movieId}?language=ko-KR`,
+    [movieId]
+  );
 
-      try {
-        const [movieRes, creditsRes] = await Promise.all([
-          axios.get<MovieDetails>(
-            `https://api.themoviedb.org/3/movie/${movieId}?language=ko-KR`,
-            {
-              headers: {
-                accept: "application/json",
-                Authorization: `Bearer ${import.meta.env.VITE_TMDB_KEY}`,
-              },
-            }
-          ),
-          axios.get<Credits>(
-            `https://api.themoviedb.org/3/movie/${movieId}/credits?language=ko-KR`,
-            {
-              headers: {
-                accept: "application/json",
-                Authorization: `Bearer ${import.meta.env.VITE_TMDB_KEY}`,
-              },
-            }
-          ),
-        ]);
+  const {
+    data: credits,
+    loading: creditsLoading,
+    error: creditsError,
+  } = useCustomFetch<Credits>(
+    `https://api.themoviedb.org/3/movie/${movieId}/credits?language=ko-KR`,
+    [movieId]
+  );
 
-        setMovie(movieRes.data);
-        setCredits(creditsRes.data);
-      } catch {
-        setIsError(true);
-      } finally {
-        setIsPending(false);
-      }
-    };
-
-    if (movieId) fetchData();
-  }, [movieId]);
-
-  if (isError) return <div className="text-red-500">에러가 발생했습니다</div>;
-  if (isPending) {
+  // ✅ 로딩 & 에러 상태 처리
+  if (movieLoading || creditsLoading) {
     return (
       <div className="flex items-center justify-center h-dvh">
         <LoadingSpinner />
       </div>
     );
   }
-  if (!movie) return <div>영화 정보를 불러올 수 없습니다</div>;
+
+  if (movieError || creditsError) {
+    return (
+      <div className="text-red-500 text-center">에러가 발생했습니다 😢</div>
+    );
+  }
+
+  if (!movie) {
+    return (
+      <div className="text-gray-400 text-center">
+        영화 정보를 불러올 수 없습니다
+      </div>
+    );
+  }
 
   return (
     <div className="bg-black min-h-screen text-white">
