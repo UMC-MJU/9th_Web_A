@@ -1,8 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import useForm from "../hooks/useForm";
 import { type UserSigninInformation, validateSignin } from "../utils/validate";
+import { postSignin } from "../apis/auth";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { LOCAL_STORAGE_KEY } from "../constants/key";
 
 export const LoginPage = () => {
+  const { setItem } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
   const navigate = useNavigate();
   const { values, errors, touched, getInputProps } =
     useForm<UserSigninInformation>({
@@ -12,6 +16,21 @@ export const LoginPage = () => {
 
   const handleSubmit = async () => {
     console.log(values);
+    try {
+      const response = await postSignin(values);
+      setItem(response.data.accessToken);
+      console.log(response);
+      navigate("/"); // 로그인 성공 시 홈으로 이동
+    } catch (error) {
+      // error가 unknown일 수도 있으니 타입 좁히기
+      if (error instanceof Error) {
+        console.error("로그인 중 오류 발생:", error.message);
+        alert(error.message);
+      } else {
+        console.error("알 수 없는 오류 발생:", error);
+        alert("로그인 중 알 수 없는 오류가 발생했습니다.");
+      }
+    }
   };
 
   const isValid =
