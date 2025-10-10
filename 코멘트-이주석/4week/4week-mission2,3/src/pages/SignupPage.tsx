@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,23 +35,66 @@ export const SignupPage = () => {
     handleSubmit,
     trigger,
     getValues,
+    watch,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<SignupForm>({
     resolver: zodResolver(SignupSchema),
     mode: "onChange",
+    defaultValues: { email: "", password: "", passwordCheck: "", name: "" },
   });
 
+  // 입력 값 실시간 구독
+  const email = watch("email");
+  const pw = watch("password");
+  const pwc = watch("passwordCheck");
+  const name = watch("name");
+
+  // 비밀번호 불일치 즉시 표시 (둘 다 최소 길이 충족할 때만)
+  useEffect(() => {
+    if (pw?.length >= 6 && pwc?.length >= 6) {
+      if (pw !== pwc) {
+        setError("passwordCheck", {
+          type: "validate",
+          message: "비밀번호가 일치하지 않습니다.",
+        });
+      } else {
+        clearErrors("passwordCheck");
+      }
+    } else {
+      // 길이 유효성은 zod가 처리하므로 여기서 별도 오류 주입 X
+      // (기존 길이 오류 메시지가 있다면 그대로 남게 됨)
+    }
+  }, [pw, pwc, setError, clearErrors]);
+
+  // 이메일 → 비밀번호
   const goNextFromEmail = async () => {
     const ok = await trigger("email");
     if (ok) setStep(2);
   };
 
+  // 비밀번호 → 닉네임
   const goNextFromPassword = async () => {
-    const ok = await trigger(["password", "passwordCheck"]);
+    // zod 모든 규칙(길이 + refine) 검증
+    const ok = await trigger(["password", "passwordCheck"], {
+      shouldFocus: true,
+    });
+    if (!ok) return;
+
+    // 안전망: 혹시 모를 불일치 수동 체크
     const { password, passwordCheck } = getValues();
-    if (ok && password === passwordCheck) setStep(3);
+    if (password !== passwordCheck) {
+      setError("passwordCheck", {
+        type: "validate",
+        message: "비밀번호가 일치하지 않습니다.",
+      });
+      return;
+    }
+    setStep(3);
   };
 
+  // 최종 제출
   const onSubmit = async (data: SignupForm) => {
     const { email, password, name } = data;
     await postSignup({ email, password, name });
@@ -60,13 +103,15 @@ export const SignupPage = () => {
     navigate("/");
   };
 
-  const emailOk = !!getValues("email") && !errors.email;
+  // 버튼 활성화 조건
+  const emailOk = !!email && !errors.email;
   const pwOk =
-    !!getValues("password") &&
-    !!getValues("passwordCheck") &&
+    pw?.length >= 6 &&
+    pwc?.length >= 6 &&
+    pw === pwc &&
     !errors.password &&
     !errors.passwordCheck;
-  const nameOk = !!getValues("name") && !errors.name;
+  const nameOk = !!name && !errors.name;
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white relative px-6">
