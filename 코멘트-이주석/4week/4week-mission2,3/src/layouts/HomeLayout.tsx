@@ -13,9 +13,12 @@ const HomeLayout = () => {
           >
             로그인
           </Link>
-          <button className="bg-[#f72585] px-3 py-1 rounded-md text-sm font-semibold hover:bg-pink-600 transition-colors">
+          <Link
+            to="/signup"
+            className="bg-[#f72585] px-3 py-1 rounded-md text-sm font-semibold hover:bg-pink-600 transition-colors"
+          >
             회원가입
-          </button>
+          </Link>
         </div>
       </nav>
 
