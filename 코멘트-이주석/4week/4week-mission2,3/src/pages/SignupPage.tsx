@@ -28,7 +28,6 @@ export const SignupPage = () => {
   const [showPw, setShowPw] = useState(false);
   const [showPwCheck, setShowPwCheck] = useState(false);
 
-  // ✅ 객체 반환형 훅 사용 (튜플 아님)
   const { setItem } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
 
   const {
@@ -40,36 +39,24 @@ export const SignupPage = () => {
   } = useForm<SignupForm>({
     resolver: zodResolver(SignupSchema),
     mode: "onChange",
-    defaultValues: { email: "", password: "", passwordCheck: "", name: "" },
   });
 
-  // 이메일 → 비밀번호
   const goNextFromEmail = async () => {
     const ok = await trigger("email");
     if (ok) setStep(2);
   };
 
-  // 비밀번호 → 닉네임
   const goNextFromPassword = async () => {
     const ok = await trigger(["password", "passwordCheck"]);
     const { password, passwordCheck } = getValues();
     if (ok && password === passwordCheck) setStep(3);
   };
 
-  // 최종 제출: 회원가입 → 즉시 로그인 → 토큰 저장 → 홈 이동
   const onSubmit = async (data: SignupForm) => {
     const { email, password, name } = data;
-
-    // 1) 회원가입 (signup 응답엔 토큰 없음) :contentReference[oaicite:4]{index=4}
     await postSignup({ email, password, name });
-
-    // 2) 로그인으로 토큰 발급 받기 (여기에 accessToken 있음) :contentReference[oaicite:5]{index=5}
     const signInRes = await postSignin({ email, password });
-
-    // 3) 토큰 저장 (useLocalStorage는 JSON.stringify로 저장) :contentReference[oaicite:6]{index=6}
     setItem(signInRes.data.accessToken);
-
-    // 4) 홈으로 이동
     navigate("/");
   };
 
@@ -83,28 +70,49 @@ export const SignupPage = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white relative px-6">
-      {/* 뒤로가기 */}
-      <button
-        onClick={() =>
-          step === 1 ? navigate(-1) : setStep((s) => (s === 2 ? 1 : 2))
-        }
-        className="absolute left-4 top-4 text-2xl text-white cursor-pointer hover:text-gray-300 transition-all"
-      >
-        &lt;
-      </button>
+      <div className="relative flex flex-col w-[380px] gap-5 items-center text-center bg-transparent">
+        {/* 뒤로가기 버튼 */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute left-3 top-2 text-2xl text-white cursor-pointer hover:text-gray-300 hover:brightness-90 transition-all duration-150"
+        >
+          &lt;
+        </button>
 
-      <h1 className="text-2xl font-bold mb-8">회원가입</h1>
+        <h1 className="text-2xl font-bold mb-2">회원가입</h1>
+      </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm flex flex-col space-y-5"
+        className="w-full max-w-sm flex flex-col space-y-5 items-center"
       >
         {step === 1 && (
           <>
-            <div>
+            {/* 구글 로그인 버튼 */}
+            <button
+              type="button"
+              className="relative flex items-center justify-center w-full border border-gray-500 rounded-md py-3 hover:bg-gray-800 transition-all cursor-pointer"
+            >
+              <img
+                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
+                alt="Google 로고"
+                className="absolute left-4 w-5 h-5"
+              />
+              <span className="text-sm font-medium">구글 로그인</span>
+            </button>
+
+            {/* OR 구분선 */}
+            <div className="flex items-center w-full text-gray-400 text-xs gap-2">
+              <div className="flex-1 h-[1px] bg-gray-700" />
+              <span>OR</span>
+              <div className="flex-1 h-[1px] bg-gray-700" />
+            </div>
+
+            {/* 이메일 입력 */}
+            <div className="w-full">
               <input
                 type="email"
-                placeholder="이메일을 입력해주세요."
+                placeholder="이메일을 입력해주세요!"
                 {...register("email")}
                 className="w-full px-4 py-3 rounded-md bg-[#141414] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#f72585]"
               />
@@ -114,6 +122,7 @@ export const SignupPage = () => {
                 </p>
               )}
             </div>
+
             <button
               type="button"
               onClick={goNextFromEmail}
@@ -121,7 +130,7 @@ export const SignupPage = () => {
               className={`w-full py-3 rounded-md text-base font-semibold transition-all ${
                 emailOk
                   ? "bg-[#f72585] hover:brightness-90 cursor-pointer"
-                  : "bg-[#141414] text-gray-300 cursor-not-allowed"
+                  : "bg-[#141414] text-gray-400 cursor-not-allowed"
               }`}
             >
               다음
@@ -131,17 +140,17 @@ export const SignupPage = () => {
 
         {step === 2 && (
           <>
-            <div className="relative">
+            <div className="relative w-full">
               <input
                 type={showPw ? "text" : "password"}
-                placeholder="비밀번호를 입력해주세요."
+                placeholder="비밀번호를 입력해주세요!"
                 {...register("password")}
                 className="w-full px-4 py-3 rounded-md bg-[#141414] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#f72585]"
               />
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-gray-400 hover:text-white cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-gray-400 hover:text-white"
               >
                 {showPw ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -152,17 +161,17 @@ export const SignupPage = () => {
               )}
             </div>
 
-            <div className="relative">
+            <div className="relative w-full">
               <input
                 type={showPwCheck ? "text" : "password"}
-                placeholder="비밀번호를 다시 입력해주세요."
+                placeholder="비밀번호를 다시 입력해주세요!"
                 {...register("passwordCheck")}
                 className="w-full px-4 py-3 rounded-md bg-[#141414] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#f72585]"
               />
               <button
                 type="button"
                 onClick={() => setShowPwCheck((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-gray-400 hover:text-white cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-gray-400 hover:text-white"
               >
                 {showPwCheck ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -180,7 +189,7 @@ export const SignupPage = () => {
               className={`w-full py-3 rounded-md text-base font-semibold transition-all ${
                 pwOk
                   ? "bg-[#f72585] hover:brightness-90 cursor-pointer"
-                  : "bg-[#141414] text-gray-300 cursor-not-allowed"
+                  : "bg-[#141414] text-gray-400 cursor-not-allowed"
               }`}
             >
               다음
@@ -189,8 +198,7 @@ export const SignupPage = () => {
         )}
 
         {step === 3 && (
-          <div className="flex flex-col items-center gap-6">
-            {/* 프로필 이미지 (기본 회색 원 + 사용자 아이콘) */}
+          <div className="flex flex-col items-center gap-6 w-full">
             <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center shadow-inner">
               <img
                 src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
@@ -198,14 +206,12 @@ export const SignupPage = () => {
                 className="w-16 h-16 opacity-80"
               />
             </div>
-
-            {/* 닉네임 입력 */}
-            <div className="w-full flex flex-col gap-2">
+            <div className="w-full">
               <input
                 type="text"
-                placeholder="닉네임을 입력해주세요."
+                placeholder="닉네임을 입력해주세요!"
                 {...register("name")}
-                className="w-full px-4 py-3 rounded-md bg-[#141414] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#f72585] text-white text-center"
+                className="w-full px-4 py-3 rounded-md bg-[#141414] border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#f72585] text-center"
               />
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">
@@ -214,14 +220,13 @@ export const SignupPage = () => {
               )}
             </div>
 
-            {/* 회원가입 완료 버튼 */}
             <button
               type="submit"
               disabled={!nameOk}
               className={`w-full py-3 rounded-md text-base font-semibold transition-all ${
                 nameOk
                   ? "bg-[#f72585] hover:brightness-90 cursor-pointer"
-                  : "bg-[#141414] text-gray-300 cursor-not-allowed"
+                  : "bg-[#141414] text-gray-400 cursor-not-allowed"
               }`}
             >
               회원가입 완료
