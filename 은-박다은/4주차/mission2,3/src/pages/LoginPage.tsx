@@ -14,6 +14,12 @@ const LoginPage = () => {
   const handleSubmit = () => {
     console.log(values);
   };
+
+  // 오류가 하나라도 있거나, 입력값이 비어있으면 버튼을 비활성화
+  const isDisabled: boolean =
+    Object.values(errors || {}).some((error: string) => error.length > 0) ||
+    Object.values(values).some((value: string) => value === "");
+
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4">
       <div className="flex flex-col gap-3">
@@ -48,8 +54,9 @@ const LoginPage = () => {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={false}
-          className="w-full bg-blue-600 text-white py-3 rounded-md text-lg font-medium hover:bg-blue-700 transition-colors cusor-pointer disavled:bg-grat-300"
+          disabled={isDisabled}
+          className="w-full bg-blue-600 text-white py-3 rounded-md text-lg font-medium 
+             hover:bg-blue-700 transition-colors cursor-pointer disabled:bg-gray-300"
         >
           로그인
         </button>
