@@ -21,42 +21,56 @@ const LoginPage = () => {
     Object.values(values).some((value: string) => value === "");
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-4">
-      <div className="flex flex-col gap-3">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
+      <div className="w-[320px] flex flex-col items-center gap-4">
+        <h2 className="text-xl font-semibold mb-2">로그인</h2>
+
+        <button className="flex items-center justify-center gap-2 w-full border border-gray-500 py-2 rounded-md hover:bg-gray-800 transition">
+          구글 로그인
+        </button>
+
+        <div className="flex items-center w-full my-2">
+          <hr className="flex-1 border-gray-600" />
+          <span className="mx-3 text-gray-400 text-sm">OR</span>
+          <hr className="flex-1 border-gray-600" />
+        </div>
         <input
           {...getInputProps("email")}
-          className={`border border-[#ccc] w-[300px] p-[10px] focus:border-[#807bff] rounded-sm
-            ${
-              errors?.email && touched?.email
-                ? "border-red-500 bg-red-200"
-                : "border-gray-300"
-            }`}
-          type={"email"}
-          placeholder={"이메일"}
+          type="email"
+          placeholder="이메일을 입력해주세요"
+          className={`w-full px-3 py-2 border rounded-md bg-transparent text-sm text-white
+          focus:outline-none focus:border-[#807bff]
+          ${
+            errors?.email && touched?.email
+              ? "border-red-500 bg-red-900/20"
+              : "border-gray-500"
+          }`}
         />
         {errors?.email && touched?.email && (
-          <div className="text-red-500 text-sm">{errors.email}</div>
+          <p className="text-red-500 text-xs -mt-2">{errors.email}</p>
         )}
         <input
           {...getInputProps("password")}
-          className={`border border-[#ccc] w-[300px] p-[10px] focus:border-[#807bff] rounded-sm
-            ${
-              errors?.password && touched?.password
-                ? "border-red-500 bg-red-200"
-                : "border-gray-300"
-            }`}
-          type={"password"}
-          placeholder={"비밀번호"}
+          type="password"
+          placeholder="비밀번호를 입력해주세요"
+          className={`w-full px-3 py-2 border rounded-md bg-transparent text-sm text-white
+          focus:outline-none focus:border-[#807bff]
+          ${
+            errors?.password && touched?.password
+              ? "border-red-500 bg-red-900/20"
+              : "border-gray-500"
+          }`}
         />
         {errors?.password && touched?.password && (
-          <div className="text-red-500 text-sm">{errors.password}</div>
+          <p className="text-red-500 text-xs -mt-2">{errors.password}</p>
         )}
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isDisabled}
-          className="w-full bg-blue-600 text-white py-3 rounded-md text-lg font-medium 
-             hover:bg-blue-700 transition-colors cursor-pointer disabled:bg-gray-300"
+          className="w-full bg-gray-700 text-white py-2 rounded-md text-sm font-medium 
+                   hover:bg-[#807bff] transition-colors 
+                   disabled:bg-gray-500 disabled:cursor-not-allowed"
         >
           로그인
         </button>
