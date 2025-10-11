@@ -1,0 +1,93 @@
+import { postSignin } from "../apis/auth";
+import { LOCAL_STORAGE_KEY } from "../constants/key";
+import useForm from "../hooks/useForm";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { validateSignin, type UserSigninInformation } from "../utils/validate";
+
+const LoginPage = () => {
+  const { setItem } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
+  const { values, errors, touched, getInputProps } =
+    useForm<UserSigninInformation>({
+      initialValue: {
+        email: "",
+        password: "",
+      },
+      validate: validateSignin,
+    });
+
+  const handleSubmit = async () => {
+    console.log(values);
+    try {
+      const response = await postSignin(values);
+      setItem(response.data.accessToken);
+      console.log(response);
+    } catch (error) {
+      alert(error);
+    }
+  };
+
+  // 오류가 하나라도 있거나, 입력값이 비어있으면 버튼을 비활성화
+  const isDisabled: boolean =
+    Object.values(errors || {}).some((error: string) => error.length > 0) ||
+    Object.values(values).some((value: string) => value === "");
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
+      <div className="w-[320px] flex flex-col items-center gap-4">
+        <h2 className="text-xl font-semibold mb-2">로그인</h2>
+
+        <button className="flex items-center justify-center gap-2 w-full border border-gray-500 py-2 rounded-md hover:bg-gray-800 transition">
+          구글 로그인
+        </button>
+
+        <div className="flex items-center w-full my-2">
+          <hr className="flex-1 border-gray-600" />
+          <span className="mx-3 text-gray-400 text-sm">OR</span>
+          <hr className="flex-1 border-gray-600" />
+        </div>
+        <input
+          {...getInputProps("email")}
+          type="email"
+          placeholder="이메일을 입력해주세요"
+          className={`w-full px-3 py-2 border rounded-md bg-transparent text-sm text-white
+          focus:outline-none focus:border-[#807bff]
+          ${
+            errors?.email && touched?.email
+              ? "border-red-500 bg-red-900/20"
+              : "border-gray-500"
+          }`}
+        />
+        {errors?.email && touched?.email && (
+          <p className="text-red-500 text-xs -mt-2">{errors.email}</p>
+        )}
+        <input
+          {...getInputProps("password")}
+          type="password"
+          placeholder="비밀번호를 입력해주세요"
+          className={`w-full px-3 py-2 border rounded-md bg-transparent text-sm text-white
+          focus:outline-none focus:border-[#807bff]
+          ${
+            errors?.password && touched?.password
+              ? "border-red-500 bg-red-900/20"
+              : "border-gray-500"
+          }`}
+        />
+        {errors?.password && touched?.password && (
+          <p className="text-red-500 text-xs -mt-2">{errors.password}</p>
+        )}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isDisabled}
+          className="w-full bg-gray-700 text-white py-2 rounded-md text-sm font-medium 
+                   hover:bg-[#807bff] transition-colors 
+                   disabled:bg-gray-500 disabled:cursor-not-allowed"
+        >
+          로그인
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
