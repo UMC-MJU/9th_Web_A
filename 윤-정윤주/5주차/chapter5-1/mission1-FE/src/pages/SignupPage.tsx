@@ -78,7 +78,7 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-full gap-6">
+        <div className="flex flex-col items-center justify-center h-full gap-3">
             {/* 상단 UI */}
             <div className="flex items-center w-[300px] justify-between mb-4">
                 <button onClick={goBack} className="text-xl font-bold">
@@ -88,9 +88,28 @@ const SignupPage = () => {
                 <div className="w-6" /> {/* 오른쪽 여백 */}
             </div>
 
+            {/* 🔹 구글 로그인 버튼 */}
+            <button
+                type="button"
+                className="flex items-center justify-center w-[300px] border border-gray-400 py-2 rounded-md hover:bg-gray-100 transition"
+            >
+                <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google"
+                className="w-5 h-5 mr-2"
+                />
+                구글 로그인
+            </button>
+
+            <div className="flex items-center w-[300px] my-0">
+                <hr className="flex-grow border-gray-400 h-px m-0" />
+                <span className="mx-2 text-gray-500 text-sm ">OR</span>
+                <hr className="flex-grow border-gray-400 h-px m-0" />
+            </div>
+
             <form
-            onSubmit={handleSubmit(onsubmit)}
-            className="flex flex-col items-center gap-4 w-[300px]"
+                onSubmit={handleSubmit(onsubmit)}
+                className="flex flex-col items-center gap-4 w-[300px]"
             >  
 
                 {step === 1 && (

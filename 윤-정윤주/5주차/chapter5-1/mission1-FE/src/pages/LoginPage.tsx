@@ -34,13 +34,32 @@ const LoginPage = () => {
     const navigate = useNavigate();  // 뒤로 가기
 
     return (
-        <div className="flex flex-col items-center justify-center h-full gap-6">
+        <div className="flex flex-col items-center justify-center h-full gap-3">
             <div className="flex items-center w-[300px] justify-between mb-4">
                 <button onClick={() => navigate(-1)} className="text-xl font-bold">
                     &lt;
                 </button>
                 <h2 className="text-lg font-semibold">로그인</h2>
                 <div className="w-6" />
+            </div>
+
+            {/* 🔹 구글 로그인 버튼 */}
+            <button
+                type="button"
+                className="flex items-center justify-center w-[300px] border border-gray-400 py-2 rounded-md hover:bg-gray-100 transition"
+            >
+                <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google"
+                className="w-5 h-5 mr-2"
+                />
+                구글 로그인
+            </button>
+
+            <div className="flex items-center w-[300px] mt-0 mb-0">
+                <hr className="flex-grow border-gray-400 h-px" />
+                <span className="mx-2 text-gray-500 text-sm">OR</span>
+                <hr className="flex-grow border-gray-400 h-px" />
             </div>
 
             <div className="flex flex-col items-center gap-4">
