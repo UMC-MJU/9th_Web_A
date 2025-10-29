@@ -1,12 +1,19 @@
 import { useNavigate } from "react-router-dom";
-import { postSignin } from "../apis/auth";
-import { LOCAL_STORAGE_KEY } from "../constants/key";
 import useForm from "../hooks/useForm";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 import { vaildateSignin, type UserSigninInformation } from "../utils/validate";
+import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 
 const LoginPage = () => {
-    const { setItem } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
+    const { login, accessToken } = useAuth();  // 토큰 넣는 작업 컨텍스트에서 처리
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if(accessToken) {
+            navigate("/");  // 이미 로그인된 상태면 홈으로 이동
+        }
+    }, [accessToken, navigate]);
+
     const { values, errors, touched, getInputProps } = useForm<UserSigninInformation>({
         initialValues: {
             email: '', 
@@ -16,22 +23,13 @@ const LoginPage = () => {
     });
 
     const handleSubmit = async () => {
-        console.log(values);
-        try {
-            const response = await postSignin(values);
-            setItem(response.data.accessToken);
-            console.log(response);
-        } catch (error) {
-            alert(error);
-        }
+        await login(values);   // 컨텍스트의 login 함수 호출
     };
 
     // 이메일 또는 비밀번호가 비어있거나, 에러 메시지가 존재하면 버튼 비활성화
     const isDisabled = 
         Object.values(errors || {}).some((error) => error.length > 0) ||  // 오류가 있으면 true
         Object.values(values).some((value) => value === "");   // 빈 값이 있으면 true
-
-    const navigate = useNavigate();  // 뒤로 가기
 
     return (
         <div className="flex flex-col items-center justify-center h-full gap-3">
