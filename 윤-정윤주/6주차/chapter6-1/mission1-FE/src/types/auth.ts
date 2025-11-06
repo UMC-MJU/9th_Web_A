@@ -30,6 +30,7 @@ export type ResponseSigninDto = CommonResponse<{
     name: string;
     accessToken: string;
     refreshToken: string;
+    nickname: string | null;
 }>;
 
 // 내 정보 조회
