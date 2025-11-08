@@ -26,8 +26,8 @@ export type Lp = {
   thumbnail: string;
   published: boolean;
   authorId: number;
-  createdAt: string; // string으로 변경
-  updatedAt: string; // string으로 변경
+  createdAt: string;
+  updatedAt: string;
   tags: Tag[];
   likes: Like[];
   author?: Author;
@@ -37,6 +37,4 @@ export type LpDetail = Lp & {
   author: Author; // 필수 author
 };
 
-export type ResponseLpListDto = CursorBasedResponse<{
-  data: Lp[];
-}>;
+export type ResponseLpListDto = CursorBasedResponse<Lp[]>;

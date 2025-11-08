@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import useGetLpList from "../hooks/queries/useGetLpList";
 import { PAGINATION_ORDER } from "../enums/common";
 import type { Lp } from "../types/lp";
+import LpCard from "../components/LpCard/LpCard";
+import LpCardSkeleton from "../components/LpCard/LpCardSkeleton";
 
 export default function LpListPage() {
   const [order, setOrder] = useState<"newest" | "oldest">("newest");
-  const navigate = useNavigate();
 
   const apiOrder =
     order === "newest" ? PAGINATION_ORDER.DESC : PAGINATION_ORDER.ASC;
@@ -26,13 +26,14 @@ export default function LpListPage() {
 
   if (isLoading) {
     return (
-      <div className="p-5 grid grid-cols-3 md:grid-cols-4 gap-4">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="aspect-square bg-gray-200 animate-pulse"
-          ></div>
-        ))}
+      <div className="p-5">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {[...Array(15)].map((_, i) => (
+            <div key={i} className="relative overflow-hidden">
+              <LpCardSkeleton />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -80,38 +81,7 @@ export default function LpListPage() {
       {/* LP 카드 목록 */}
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {lpList.map((lp) => (
-          <div
-            key={lp.id}
-            onClick={() => navigate(`/lp/${lp.id}`)}
-            className="relative cursor-pointer overflow-hidden group"
-          >
-            {/* 썸네일 이미지 */}
-            <img
-              src={lp.thumbnail}
-              alt={lp.title}
-              className="w-full h-full object-cover aspect-square transform transition-transform duration-500 group-hover:scale-105"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/fallback-image.png";
-              }}
-            />
-
-            {/* hover 시 오버레이 */}
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end text-white text-left p-3">
-              <h2 className="font-semibold text-base mb-1 truncate leading-snug">
-                {lp.title}
-              </h2>
-              <div className="flex justify-between items-center text-xs mt-1">
-                <p className="text-gray-300">
-                  {new Date(lp.createdAt).toLocaleDateString("ko-KR", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                  })}
-                </p>
-                <p className="text-white font-medium">❤️ {lp.likes?.length || 0}</p>
-              </div>
-            </div>
-          </div>
+          <LpCard key={lp.id} lp={lp} />
         ))}
       </div>
     </div>
