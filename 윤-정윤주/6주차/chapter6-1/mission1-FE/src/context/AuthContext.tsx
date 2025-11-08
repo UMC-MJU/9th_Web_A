@@ -7,14 +7,15 @@ import { postLogout, postSignin } from "../apis/auth";
 interface AuthContextType {
     accessToken: string | null;
     refreshToken: string | null;
-    login: (signinData: RequestSigninDto) => Promise<void>;
+    // 로그인 성공 시 리다이렉트 경로(string) 또는 실패 시 false 반환
+    login: (signinData: RequestSigninDto) => Promise<string | false>;
     logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
     accessToken: null,
     refreshToken: null,
-    login: async () => {},
+    login: async () => false,
     logout: async () => {},
 });
 
@@ -31,14 +32,14 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
     } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
     
     const[accessToken, setAccessToken] = useState<string | null>(
-        getAccessTokenFromStorage(),   // 지연 초기화 -> 처음 렌더링 시에만 호출
+        getAccessTokenFromStorage(),
     );
 
     const[refreshToken, setRefreshToken] = useState<string | null>(
         getRefreshTokenFromStorage(),
     );
 
-    const login = async (signinData: RequestSigninDto) => {
+    const login = async (signinData: RequestSigninDto): Promise<string | false> => {
         try {
             const {data} = await postSignin(signinData);
 
@@ -49,15 +50,21 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
                 setAccessTokenInStorage(newAccessToken);
                 setRefreshTokenInStorage(newRefreshToken);
 
-                setAccessToken(newAccessToken);  // 상태 업데이트(리렌더링 유발)
+                setAccessToken(newAccessToken);
                 setRefreshToken(newRefreshToken);
 
                 alert("로그인 성공");
-                window.location.href = '/my'; // 로그인 후 마이페이지로 이동
+
+                // 로그인 성공 시 리다이렉트 경로 반환
+                const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/';
+                sessionStorage.removeItem('redirectAfterLogin');
+                return redirectPath;
             }
+            return false; // data가 없으면 false
         } catch (error) {
             console.error("로그인 오류", error);
             alert("로그인 실패");
+            return false; // 에러 발생 시 false 반환
         }
     };
 

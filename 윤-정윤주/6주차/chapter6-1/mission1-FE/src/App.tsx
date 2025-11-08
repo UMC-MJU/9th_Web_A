@@ -15,7 +15,6 @@ import LpListPage from './pages/LpListPage'
 import LpDetailPage from './pages/LpDetailPage'
 
 const publicRoutes:RouteObject[] = [
-
   // 인증 없이 접근 가능한 라우트
   {
     path: "/",
@@ -27,7 +26,6 @@ const publicRoutes:RouteObject[] = [
       { path: "signup", element: <SignupPage /> },
       { path: "v1/auth/google/callback", element: <GoogleLoginRedirectPage />},
       { path: "lps", element: <LpListPage /> },
-      { path: "lp/:lpid", element: <LpDetailPage /> },
     ],
   }
 ];
@@ -42,6 +40,10 @@ const protectedRoutes: RouteObject[] = [
       {
         path: "my",
         element: <MyPage />,
+      },
+      {
+        path: "lp/:lpid",
+        element: <LpDetailPage />,
       },
     ],
   },
