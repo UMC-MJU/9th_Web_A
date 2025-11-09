@@ -34,7 +34,19 @@ export type Lp = {
 };
 
 export type LpDetail = Lp & {
-  author: Author; // 필수 author
+  author: Author;
 };
 
 export type ResponseLpListDto = CursorBasedResponse<Lp[]>;
+
+export interface Comment {
+  id: number;
+  content: string;
+  lpId: number;
+  authorId: number;
+  createdAt: string;
+  updatedAt: string;
+  author: Author;
+}
+
+export type ResponseCommentListDto = CursorBasedResponse<Comment[]>;
