@@ -13,6 +13,8 @@ import MyPage from "./pages/MyPage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 import GoogleLoginRedirectPage from "./pages/GoogleLoginRedirectPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 // publicRoute: 인증 없이 접근 가능한 라우트
 const publicRoute: RouteObject[] = [
@@ -46,11 +48,16 @@ const protextedRoutes: RouteObject[] = [
 
 const router = createBrowserRouter([...publicRoute, ...protextedRoutes]);
 
+export const queryClient = new QueryClient();
+
 function App() {
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
   );
 }
 
