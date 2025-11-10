@@ -8,11 +8,27 @@ export const getLpList = async (
   const { data } = await axiosInstance.get("/v1/lps", {
     params: paginationDto,
   });
-
   return data;
 };
 
 export const getLpDetail = async (lpid: number): Promise<ResponseLPistDto> => {
   const { data } = await axiosInstance.get(`/v1/lps/${lpid}`);
+  return data;
+};
+
+export const getLpComments = async ({
+  lpId,
+  cursor = 0,
+  limit,
+  order,
+}: {
+  lpId: number;
+  cursor?: number;
+  limit: number;
+  order: string;
+}) => {
+  const { data } = await axiosInstance.get(`/v1/lps/${lpId}/comments`, {
+    params: { cursor, limit, order },
+  });
   return data;
 };

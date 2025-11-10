@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Edit3, Trash2 } from "lucide-react";
 import { useGetLpDetail } from "../hooks/queries/useGetLpDetail";
+import LpComments from "../components/LpComments";
 
 const LpPage = () => {
   const { lpid } = useParams();
@@ -46,13 +47,10 @@ const LpPage = () => {
   const likesCount = lp.likes?.length ?? 0;
 
   return (
-    <div className="min-h-screen bg-black text-white flex justify-center items-start pt-24 pb-16 px-4">
-      {/* 가운데 큰 카드 */}
+    <div className="min-h-screen bg-black text-white flex flex-col items-center pt-24 pb-16 px-4 gap-8">
       <div className="w-full max-w-4xl bg-[#18181b] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.7)] px-10 py-8">
-        {/* 상단: 작성자 / 제목 / 업로드일 / 아이콘 버튼 */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
-            {/* 아바타 */}
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 flex items-center justify-center text-xs font-semibold">
               {authorName.charAt(0)}
             </div>
@@ -62,7 +60,6 @@ const LpPage = () => {
             </div>
           </div>
 
-          {/* 수정 / 삭제 아이콘 */}
           <div className="flex items-center gap-3 text-gray-400">
             <button className="p-1 hover:text-pink-400 transition">
               <Edit3 className="w-4 h-4" />
@@ -114,6 +111,7 @@ const LpPage = () => {
           <span>{likesCount}</span>
         </div>
       </div>
+      <LpComments lpId={Number(lpid)} />
     </div>
   );
 };
