@@ -28,7 +28,7 @@ const publicRoute: RouteObject[] = [
       { path: "login", element: <LoginPage /> },
       { path: "signup", element: <SignupPage /> },
       { path: "v1/auth/google/callback", element: <GoogleLoginRedirectPage /> },
-      { index: true, element: <HomePage /> }, // ✅ LP 카드 목록이 바로 보임
+      { index: true, element: <HomePage /> },
       { path: "lp/:lpid", element: <LpPage /> },
     ],
   },
