@@ -21,7 +21,7 @@ const ProtectedLayout = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-black text-white">
+    <div className="min-h-screen flex flex-col bg-black text-white">
       {/* 상단 네브바 */}
       <Navbar />
 
@@ -30,7 +30,7 @@ const ProtectedLayout = () => {
         <Sidebar isOpen={true} onClose={() => {}} />
 
         {/* 메인 콘텐츠 */}
-        <main className="flex-1 ml-60 p-6 overflow-auto">
+        <main className="flex-1 ml-60 p-6 ">
           <Outlet />
         </main>
       </div>
