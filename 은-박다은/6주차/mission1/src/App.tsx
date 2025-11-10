@@ -29,7 +29,6 @@ const publicRoute: RouteObject[] = [
       { path: "signup", element: <SignupPage /> },
       { path: "v1/auth/google/callback", element: <GoogleLoginRedirectPage /> },
       { index: true, element: <HomePage /> },
-      { path: "lp/:lpid", element: <LpPage /> },
     ],
   },
 ];
@@ -45,6 +44,7 @@ const protextedRoutes: RouteObject[] = [
         path: "my",
         element: <MyPage />,
       },
+      { path: "lp/:lpid", element: <LpPage /> },
     ],
   },
 ];

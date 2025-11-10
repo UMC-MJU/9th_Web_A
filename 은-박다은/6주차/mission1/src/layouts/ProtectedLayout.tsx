@@ -11,7 +11,13 @@ const ProtectedLayout = () => {
   const navigate = useNavigate();
 
   if (!accessToken) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location, showAuthAlert: true }}
+        replace
+      />
+    );
   }
 
   return (

@@ -2,17 +2,27 @@ import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import useForm from "../hooks/useForm";
 import { validateSignin, type UserSigninInformation } from "../utils/validate";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const { login, accessToken } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
+  const showAuthAlert = location.state?.showAuthAlert;
+
+  useEffect(() => {
+    if (showAuthAlert) {
+      alert("로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.");
+    }
+  }, [showAuthAlert]);
 
   useEffect(() => {
     if (accessToken) {
-      navigate("/");
+      navigate(from, { replace: true });
     }
-  }, [navigate, accessToken]);
+  }, [navigate, accessToken, from]);
 
   const { values, errors, touched, getInputProps } =
     useForm<UserSigninInformation>({
