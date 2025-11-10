@@ -1,78 +1,89 @@
-// src/pages/HomePage.tsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useGetLpList from "../hooks/queries/useGetLpList";
 import type { PAGINATION_ORDER } from "../enums/common";
 
 const HomePage = () => {
-  const [search, setSearch] = useState("");
-  const [order, setOrder] = useState<PAGINATION_ORDER>("desc"); // 기본: 최신순
+  const navigate = useNavigate();
+  const [order, setOrder] = useState<PAGINATION_ORDER>("desc");
 
-  const { data, isPending, isError, refetch } = useGetLpList({
-    cursor: 0,
-    limit: 20,
-    search,
-    order,
-  });
-
+  const { data, isPending, isError } = useGetLpList({ order, limit: 20 });
   const lpList = data?.data.data ?? [];
 
-  const toggleOrder = () => {
-    setOrder((prev) => (prev === "desc" ? "asc" : "desc"));
-  };
+  if (isPending)
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-400">
+        불러오는 중...
+      </div>
+    );
+
+  if (isError)
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-400">
+        오류가 발생했습니다.
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-black text-white pl-64 pr-6 pt-20">
-      <div className="flex items-center gap-4 mb-6">
-        {/* 정렬 토글 버튼 */}
-        <button
-          onClick={toggleOrder}
-          className="px-4 py-2 rounded-md border border-gray-600 hover:border-pink-500 hover:text-pink-400 transition"
-        >
-          {order === "desc" ? "최신순" : "오래된순"}
-        </button>
-      </div>
-
-      {/* 로딩 상태 */}
-      {isPending && (
-        <div className="grid grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-32 rounded-md bg-gray-800 animate-pulse"
-            />
-          ))}
-        </div>
-      )}
-
-      {/* 에러 상태 */}
-      {isError && (
-        <div className="text-center mt-10">
-          <p className="mb-4 text-red-400">
-            목록을 불러오는 중 오류가 발생했어요.
-          </p>
+    <div className="min-h-screen bg-black text-white px-8 pb-10 pl-64">
+      {/* 정렬 버튼 */}
+      <div className="flex justify-end mb-6 mt-6">
+        <div className="inline-flex rounded-md overflow-hidden border border-gray-600">
           <button
-            onClick={() => refetch()}
-            className="px-4 py-2 rounded-md bg-pink-500 hover:bg-pink-600"
+            onClick={() => setOrder("asc")}
+            className={`px-4 py-1.5 text-sm transition-all duration-200 ${
+              order === "asc"
+                ? "bg-pink-600 text-white"
+                : "bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white"
+            }`}
           >
-            다시 시도하기
+            오래된순
+          </button>
+          <button
+            onClick={() => setOrder("desc")}
+            className={`px-4 py-1.5 text-sm transition-all duration-200 ${
+              order === "desc"
+                ? "bg-pink-600 text-white"
+                : "bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white"
+            }`}
+          >
+            최신순
           </button>
         </div>
-      )}
+      </div>
 
-      {/* 정상 데이터 */}
-      {!isPending && !isError && (
-        <div className="grid grid-cols-4 gap-4">
-          {lpList.map((lp) => (
-            <div
-              key={lp.id}
-              className="bg-[#141414] rounded-lg p-3 hover:-translate-y-1 hover:shadow-lg transition"
-            >
-              <div className="h-32 bg-gray-700 rounded mb-2" />
-              <h2 className="text-sm font-semibold truncate">{lp.title}</h2>
+      {/* LP 카드 그리드 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {lpList.map((lp) => (
+          <div
+            key={lp.id}
+            onClick={() => navigate(`/lp/${lp.id}`)}
+            className="relative group cursor-pointer overflow-hidden rounded-lg bg-[#141414] shadow-md transition-transform duration-300 hover:scale-105"
+          >
+            {/* 썸네일 */}
+            <img
+              src={lp.thumbnail || "/default_cover.jpg"}
+              alt={lp.title || "lp cover"}
+              className="w-full h-56 object-cover"
+            />
+
+            {/* Hover 오버레이 */}
+            <div className="absolute inset-0 bg-black bg-opacity-80 group-hover:bg-opacity-0 transition-all duration-300 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-70">
+              <h3 className="text-sm font-semibold truncate mb-1">
+                {lp.title || "제목 없음"}
+              </h3>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>
+                  {lp.createdAt
+                    ? new Date(lp.createdAt).toLocaleDateString()
+                    : "날짜 없음"}
+                </span>
+                <span>❤️ {lp.likes?.length ?? 0}</span>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
