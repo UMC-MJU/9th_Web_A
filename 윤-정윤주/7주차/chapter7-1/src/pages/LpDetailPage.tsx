@@ -10,21 +10,44 @@ import { PAGINATION_ORDER } from "../enums/common";
 import useGetInfiniteCommentList from "../hooks/queries/useGetInfiniteComments";
 import LpCommentSkeletonList from "../components/LpComment/LpCommentSkeletonList";
 import { LpComment } from "../components/LpComment/LpComment";
+import useGetMyInfo from "../hooks/queries/useGetMyInfo";
+import { useAuth } from "../context/AuthContext";
+import usePostLike from "../hooks/mutations/usePostLike";
+import useDeleteLike from "../hooks/mutations/useDeleteLike";
+import { Heart } from "lucide-react";
 
 export default function LpDetailPage() {
-  const { lpid } = useParams<{ lpid: string }>();
+  const { lpId } = useParams<{ lpId: string }>();
   const navigate = useNavigate();
-  const [liked, setLiked] = useState(false);
+  const { accessToken } = useAuth();
+  const { data: me } = useGetMyInfo(accessToken);
+  const { mutate: likeMutate } = usePostLike();
+  const { mutate: disLikeMutate } = useDeleteLike();
 
   // ✅ 댓글 정렬 상태 (최신순 / 오래된순)
   const [order, setOrder] = useState<PAGINATION_ORDER>(PAGINATION_ORDER.DESC);
 
   // LP 상세 조회
   const { data: lp, isLoading, isError } = useQuery<Lp>({
-    queryKey: ["lp", lpid],
-    queryFn: () => getLpDetail(Number(lpid)),
-    enabled: !!lpid,
+    queryKey: ["lp", lpId],
+    queryFn: () => getLpDetail({ lpId: Number(lpId) }),
+    enabled: !!lpId,
   });
+
+  // ✅ 좋아요 상태는 서버 데이터 기반으로만 계산
+  // const isLiked = lp?.likes
+  //   .map((like) => like.userId)
+  //   .includes(me?.data.id as number) ?? false;
+
+  const isLiked = lp?.likes?.some((like) => like.userId === me?.data.id);
+
+  const handleLikeLp = () => {
+    likeMutate({ lpId: Number(lpId) });
+  };
+
+  const handleDislikeLp = () => {
+    disLikeMutate({ lpId: Number(lpId) });
+  };
 
   // ✅ 댓글 무한스크롤 훅
   const {
@@ -33,16 +56,15 @@ export default function LpDetailPage() {
     fetchNextPage,
     hasNextPage,
     isLoading: isCommentLoading,
-  } = useGetInfiniteCommentList(Number(lpid), 5, order);
+  } = useGetInfiniteCommentList(Number(lpId), 5, order);
 
   // ✅ 스크롤 트리거
   const { ref, inView } = useInView();
 
   // ✅ inView가 true일 때 다음 페이지 가져오기
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (inView && hasNextPage) fetchNextPage();
-  }, [inView, hasNextPage]);
+  }, [inView, hasNextPage, fetchNextPage]);
 
   if (isLoading) return <LoadingFallback />;
   if (isError)
@@ -74,10 +96,7 @@ export default function LpDetailPage() {
   const authorAvatar = lp.author?.avatar || "/fallback-avatar.png";
 
   // ✅ 댓글 목록 데이터 평탄화
-  const comments =
-    data?.pages.flatMap((page) => page.data) ?? [];
-
-  
+  const comments = data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
     <div className="min-h-screen bg-[#0f1115] flex justify-center items-start py-12 px-4 text-white">
@@ -186,16 +205,15 @@ export default function LpDetailPage() {
           {/* 좋아요 */}
           <div className="flex flex-col items-center mb-6">
             <button
-              onClick={() => setLiked((s) => !s)}
-              className="text-4xl active:scale-95 transform transition-transform hover:scale-110"
-              aria-label="좋아요"
+              onClick={isLiked ? handleDislikeLp : handleLikeLp}
             >
-              <span className={`${liked ? "text-pink-500" : "text-gray-400"}`}>
-                {liked ? "❤️" : "🤍"}
-              </span>
+              <Heart
+                color={isLiked ? "red" : "gray"}
+                fill={isLiked ? "red" : "transparent"} 
+              />
             </button>
             <div className="text-sm text-gray-400 mt-2">
-              {likes.length + (liked ? 1 : 0)} 좋아요
+              {likes.length}
             </div>
           </div>
 

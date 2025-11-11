@@ -42,7 +42,7 @@ const protectedRoutes: RouteObject[] = [
         element: <MyPage />,
       },
       {
-        path: "lp/:lpid",
+        path: "lp/:lpId",
         element: <LpDetailPage />,
       },
     ],
