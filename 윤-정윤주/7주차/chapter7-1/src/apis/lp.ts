@@ -33,3 +33,18 @@ export const deleteLike = async ({
 
     return data;
 };
+
+// LP 생성
+export async function createLp(payload: {
+    title: string;
+    content: string;
+    thumbnail: string;
+    tags: string[];
+}) {
+    const res = await axiosInstance.post("/v1/lps", {
+        ...payload,
+        published: true,  // LP를 바로 게시 상태로 생성
+    });
+    return res.data;
+}
+

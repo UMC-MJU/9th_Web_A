@@ -60,3 +60,12 @@ export type ResponseLikeLpDto = CommonResponse<{
   userId: number;
   lpId: number;
 }>;
+
+export type ResponseLpDto = CommonResponse<Lp>;
+
+export type RequestCreateLpDto = {
+  name: string;
+  content: string;
+  tags: string[];
+  image?: string;
+};
