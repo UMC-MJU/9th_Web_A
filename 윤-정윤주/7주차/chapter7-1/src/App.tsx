@@ -26,6 +26,7 @@ const publicRoutes:RouteObject[] = [
       { path: "signup", element: <SignupPage /> },
       { path: "v1/auth/google/callback", element: <GoogleLoginRedirectPage />},
       { path: "lps", element: <LpListPage /> },
+      { path:"create", element: <HomePage /> },
     ],
   }
 ];

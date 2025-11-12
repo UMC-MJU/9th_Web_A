@@ -1,10 +1,14 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Plus } from "lucide-react";
+import ModalCreateLP from "../components/ModalCreateLP";
+import { useState } from "react";
 
 const HomeLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="h-screen flex flex-col bg-[#0B0E13] text-white">
@@ -16,14 +20,17 @@ const HomeLayout = () => {
         <Outlet />
       </main>
 
-      {/* 플로팅 버튼 */}
+      {/* 플로팅 + 버튼 */}
       <button
-        onClick={() => navigate("/create")}
-        className="fixed bottom-6 right-6 bg-pink-500 hover:bg-pink-600 text-white rounded-full w-11 h-11 flex items-center justify-center shadow-lg transition-transform hover:scale-105"
+        onClick={() => setIsModalOpen(true)}
+        className="fixed bottom-6 right-6 bg-pink-500 hover:bg-pink-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-transform hover:scale-105 z-50"
       >
         <Plus size={28} />
       </button>
 
+      {/* 모달 */}
+      {isModalOpen && <ModalCreateLP onClose={() => setIsModalOpen(false)} />}
+      
       {/* 푸터 */}
       <Footer />
     </div>
