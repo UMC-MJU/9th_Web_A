@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { LOCAL_STORAGE_KEY } from "../constants/key";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const GoogleLoginRedirectPage = () => {
-    const { setItem: setAccessToken } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
-    const { setItem: setRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
+    const { setAccessToken: setContextAccessToken, setRefreshToken: setContextRefreshToken } = useAuth();
+    const { setItem: setAccessTokenStorage } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
+    const { setItem: setRefreshTokenStorage } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -14,15 +16,26 @@ const GoogleLoginRedirectPage = () => {
         const refreshToken = urlParams.get(LOCAL_STORAGE_KEY.refreshToken);
 
         if (accessToken && refreshToken) {
-            setAccessToken(accessToken);
-            setRefreshToken(refreshToken);
+            // 1️⃣ localStorage 업데이트
+            setAccessTokenStorage(accessToken);
+            setRefreshTokenStorage(refreshToken);
 
-            // 로그인 전 페이지 가져오기
+            // 2️⃣ Context 업데이트
+            setContextAccessToken?.(accessToken);
+            setContextRefreshToken?.(refreshToken);
+
+            // 3️⃣ 로그인 전 페이지로 리다이렉트
             const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/';
             sessionStorage.removeItem('redirectAfterLogin');
             navigate(redirectPath, { replace: true });
         }
-    }, [setAccessToken, setRefreshToken, navigate]);
+    }, [
+        setAccessTokenStorage, 
+        setRefreshTokenStorage, 
+        setContextAccessToken, 
+        setContextRefreshToken, 
+        navigate
+    ]);
 
     return (
         <div className="flex items-center justify-center h-screen">

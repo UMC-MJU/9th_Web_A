@@ -7,7 +7,8 @@ import { postLogout, postSignin } from "../apis/auth";
 interface AuthContextType {
     accessToken: string | null;
     refreshToken: string | null;
-    // 로그인 성공 시 리다이렉트 경로(string) 또는 실패 시 false 반환
+    setAccessToken?: (token: string | null) => void;
+    setRefreshToken?: (token: string | null) => void;
     login: (signinData: RequestSigninDto) => Promise<string | false>;
     logout: () => Promise<void>;
 }
@@ -19,74 +20,64 @@ export const AuthContext = createContext<AuthContextType>({
     logout: async () => {},
 });
 
-export const AuthProvider = ({children}: PropsWithChildren) => {
-    const {
-        getItem:getAccessTokenFromStorage,
-        setItem:setAccessTokenInStorage,
-        removeItem:removeAccessTokenFromStorage,
-    } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
-    const {
-        getItem:getRefreshTokenFromStorage,
-        setItem:setRefreshTokenInStorage,
-        removeItem:removeRefreshTokenFromStorage,
-    } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
-    
-    const[accessToken, setAccessToken] = useState<string | null>(
-        getAccessTokenFromStorage(),
-    );
+export const AuthProvider = ({ children }: PropsWithChildren) => {
+    const { getItem: getAccessTokenFromStorage, setItem: setAccessTokenInStorage, removeItem: removeAccessTokenFromStorage } =
+        useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
 
-    const[refreshToken, setRefreshToken] = useState<string | null>(
-        getRefreshTokenFromStorage(),
-    );
+    const { getItem: getRefreshTokenFromStorage, setItem: setRefreshTokenInStorage, removeItem: removeRefreshTokenFromStorage } =
+        useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
+
+    const [accessToken, setAccessToken] = useState<string | null>(getAccessTokenFromStorage());
+    const [refreshToken, setRefreshToken] = useState<string | null>(getRefreshTokenFromStorage());
 
     const login = async (signinData: RequestSigninDto): Promise<string | false> => {
         try {
-            const {data} = await postSignin(signinData);
+            const { data } = await postSignin(signinData);
 
             if (data) {
-                const newAccessToken = data.accessToken;
-                const newRefreshToken = data.refreshToken;
-
-                setAccessTokenInStorage(newAccessToken);
-                setRefreshTokenInStorage(newRefreshToken);
-
-                setAccessToken(newAccessToken);
-                setRefreshToken(newRefreshToken);
+                setAccessTokenInStorage(data.accessToken);
+                setRefreshTokenInStorage(data.refreshToken);
+                setAccessToken(data.accessToken);
+                setRefreshToken(data.refreshToken);
 
                 alert("로그인 성공");
 
-                // 로그인 성공 시 리다이렉트 경로 반환
-                const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/';
-                sessionStorage.removeItem('redirectAfterLogin');
+                const redirectPath = sessionStorage.getItem("redirectAfterLogin") || "/";
+                sessionStorage.removeItem("redirectAfterLogin");
                 return redirectPath;
             }
-            return false; // data가 없으면 false
+            return false;
         } catch (error) {
             console.error("로그인 오류", error);
             alert("로그인 실패");
-            return false; // 에러 발생 시 false 반환
+            return false;
         }
     };
 
     const logout = async () => {
         try {
             await postLogout();
-            
             removeAccessTokenFromStorage();
             removeRefreshTokenFromStorage();
-
             setAccessToken(null);
             setRefreshToken(null);
-
-            alert("로그아웃 성공");
         } catch (error) {
             console.error("로그아웃 오류", error);
             alert("로그아웃 실패");
-        }  
+        }
     };
 
     return (
-        <AuthContext.Provider value={{accessToken, refreshToken, login, logout}}>
+        <AuthContext.Provider
+            value={{
+                accessToken,
+                refreshToken,
+                setAccessToken,
+                setRefreshToken,
+                login,
+                logout,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
@@ -94,9 +85,6 @@ export const AuthProvider = ({children}: PropsWithChildren) => {
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if(!context) {
-        throw new Error("AuthContext를 찾을 수 없습니다.");
-    }
-
+    if (!context) throw new Error("AuthContext를 찾을 수 없습니다.");
     return context;
 };
