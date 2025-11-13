@@ -48,3 +48,30 @@ export async function createLp(payload: {
     return res.data;
 }
 
+export const updateLp = async ({
+  lpId,
+  title,
+  content,
+  thumbnail,
+  tags,
+}: {
+  lpId: number;
+  title: string;
+  content: string;
+  thumbnail: string;
+  tags: string[];
+}) => {
+  const { data } = await axiosInstance.put(`/v1/lps/${lpId}`, {
+    title,
+    content,
+    thumbnail,
+    tags,
+    published: true,
+  });
+  return data;
+};
+
+export const deleteLp = async ({ lpId }: { lpId: number }) => {
+  const { data } = await axiosInstance.delete(`/v1/lps/${lpId}`);
+  return data;
+};

@@ -21,7 +21,6 @@ const LoginPage = () => {
     mutationFn: (signinData: UserSigninInformation) => login(signinData),
     onSuccess: (redirectPath) => {
       if (redirectPath) {
-        alert("로그인 성공!");
         navigate(redirectPath, { replace: true });
       } else {
         alert("로그인 실패");
