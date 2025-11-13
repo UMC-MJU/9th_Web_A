@@ -2,8 +2,8 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Plus } from "lucide-react";
-import ModalCreateLP from "../components/ModalCreateLP";
 import { useState } from "react";
+import ModalCreateLP from "../components/ModalCreateLP";
 
 const HomeLayout = () => {
   const navigate = useNavigate();
@@ -29,7 +29,8 @@ const HomeLayout = () => {
       </button>
 
       {/* 모달 */}
-      {isModalOpen && <ModalCreateLP onClose={() => setIsModalOpen(false)} />}
+      {<ModalCreateLP open={isModalOpen} onClose={() => setIsModalOpen(false)} />}
+
       
       {/* 푸터 */}
       <Footer />

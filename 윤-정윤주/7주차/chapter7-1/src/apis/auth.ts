@@ -28,3 +28,14 @@ export const postLogout = async () => {
 
     return data;
 };
+
+export interface UpdateUserPayload {
+    name?: string;
+    bio?: string;
+    avatar?: string; // URL 문자열
+}
+
+export const updateMyInfo = async (payload: UpdateUserPayload) => {
+    const { data } = await axiosInstance.patch("/v1/users", payload);
+    return data;
+};

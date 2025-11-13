@@ -7,7 +7,8 @@ type ModalCreateLPProps = {
   onClose: () => void;
 };
 
-const ModalCreateLP = ({ onClose }: ModalCreateLPProps) => {
+const ModalCreateLP = ({ open, onClose }: ModalCreateLPProps) => {
+  if (!open) return null;
   const modalRef = useRef<HTMLDivElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
