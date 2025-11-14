@@ -1,15 +1,12 @@
-// src/components/MyPage/EditProfileModal.tsx
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Camera, Upload } from "lucide-react";
-import { axiosInstance } from "../../apis/axios";
+import useUpdateUser from "../../hooks/mutations/useUpdateUser";
 
 interface EditProfileModalProps {
   currentName: string;
   currentBio: string | null;
   currentAvatar: string | null;
   onClose: () => void;
-  onSuccess: () => void;
 }
 
 const EditProfileModal = ({
@@ -17,121 +14,78 @@ const EditProfileModal = ({
   currentBio,
   currentAvatar,
   onClose,
-  onSuccess,
 }: EditProfileModalProps) => {
   const [name, setName] = useState(currentName);
   const [bio, setBio] = useState(currentBio ?? "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>(currentAvatar ?? "");
+  const [previewUrl, setPreviewUrl] = useState(currentAvatar ?? "");
   const [isUploading, setIsUploading] = useState(false);
-  const queryClient = useQueryClient();
 
-  // 이미지 파일을 서버에 업로드하고 URL 받기
-  const uploadImage = async (file: File): Promise<string> => {
+  const updateMutation = useUpdateUser();
+
+  // 이미지 업로드
+  const uploadImage = async (file: File) => {
     const formData = new FormData();
     formData.append("image", file);
 
     try {
-      // 이미지 업로드 엔드포인트 (실제 엔드포인트로 변경 필요)
-      const { data } = await axiosInstance.post("/v1/upload/image", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const res = await fetch("/v1/upload/image", {
+        method: "POST",
+        body: formData,
       });
-      
-      // 서버에서 반환한 이미지 URL
+      const data = await res.json();
       return data.data.url || data.data.imageUrl || data.url;
-    } catch (error) {
-      console.error("이미지 업로드 실패:", error);
-      throw new Error("이미지 업로드에 실패했습니다.");
+    } catch (err) {
+      throw new Error("이미지 업로드 실패");
     }
   };
-
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      setIsUploading(true);
-      
-      const payload: any = {
-        name: name.trim(),
-      };
-      
-      if (bio.trim()) {
-        payload.bio = bio.trim();
-      }
-      
-      // 새 이미지 파일이 있으면 업로드 후 URL 받기
-      if (avatarFile) {
-        try {
-          const uploadedUrl = await uploadImage(avatarFile);
-          payload.avatar = uploadedUrl;
-        } catch (error) {
-          setIsUploading(false);
-          throw error;
-        }
-      } else if (previewUrl && previewUrl !== currentAvatar) {
-        // URL이 변경된 경우 (기존과 다른 경우)
-        payload.avatar = previewUrl;
-      }
-
-      console.log("📤 전송할 데이터:", payload);
-
-      const { data } = await axiosInstance.patch("/v1/users", payload);
-      setIsUploading(false);
-      return data;
-    },
-    onSuccess: async (responseData) => {
-      console.log("✅ 서버 응답:", responseData);
-      queryClient.invalidateQueries({ queryKey: ["myInfo"] });
-      
-      // 부모 컴포넌트의 데이터 갱신
-      await onSuccess();
-      
-      // Navbar 강제 새로고침을 위한 이벤트 발생
-      window.dispatchEvent(new Event("profileUpdated"));
-      
-      alert("프로필이 성공적으로 업데이트되었습니다!");
-      onClose();
-    },
-    onError: (error: any) => {
-      console.error("프로필 업데이트 실패:", error);
-      setIsUploading(false);
-      alert(error?.message || error?.response?.data?.message || "프로필 업데이트에 실패했습니다.");
-    },
-  });
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // 파일 크기 체크 (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert("파일 크기는 5MB 이하여야 합니다.");
-        return;
-      }
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return alert("이미지 파일만 업로드 가능합니다");
+    if (file.size > 5 * 1024 * 1024) return alert("5MB 이하만 업로드 가능합니다");
 
-      // 이미지 파일 타입 체크
-      if (!file.type.startsWith("image/")) {
-        alert("이미지 파일만 업로드 가능합니다.");
-        return;
-      }
+    setAvatarFile(file);
 
-      setAvatarFile(file);
-      
-      // 미리보기 URL 생성
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewUrl(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
-    if (!name.trim()) {
-      alert("이름은 필수입니다.");
-      return;
+  const handleSave = async () => {
+    if (!name.trim()) return alert("이름은 필수입니다");
+
+    setIsUploading(true);
+
+    let avatarUrl = previewUrl;
+    if (avatarFile) {
+      try {
+        avatarUrl = await uploadImage(avatarFile);
+      } catch (err: any) {
+        setIsUploading(false);
+        return alert(err.message);
+      }
     }
 
-    updateMutation.mutate();
+    updateMutation.mutate(
+      {
+        name: name.trim(),
+        bio: bio.trim() || undefined,
+        avatar: avatarUrl !== currentAvatar ? avatarUrl : undefined,
+      },
+      {
+        onSuccess: () => {
+          setIsUploading(false);
+          window.dispatchEvent(new Event("profileUpdated")); // Navbar 반영
+          onClose();
+        },
+        onError: (err: any) => {
+          setIsUploading(false);
+          alert(err?.message || "프로필 수정 실패");
+        },
+      }
+    );
   };
 
   const isPending = updateMutation.isPending || isUploading;
@@ -142,11 +96,7 @@ const EditProfileModal = ({
         {/* 헤더 */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">프로필 수정</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition"
-            disabled={isPending}
-          >
+          <button onClick={onClose} disabled={isPending} className="text-gray-400 hover:text-white transition">
             <X size={24} />
           </button>
         </div>
@@ -184,12 +134,8 @@ const EditProfileModal = ({
             className="hidden"
             disabled={isPending}
           />
-          <p className="text-sm text-gray-400 mt-2">
-            {isPending ? "업로드 중..." : "클릭하여 이미지 변경"}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            JPG, PNG, GIF (최대 5MB)
-          </p>
+          <p className="text-sm text-gray-400 mt-2">{isPending ? "업로드 중..." : "클릭하여 이미지 변경"}</p>
+          <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF (최대 5MB)</p>
         </div>
 
         {/* 이름 입력 */}
@@ -222,18 +168,10 @@ const EditProfileModal = ({
 
         {/* 버튼 */}
         <div className="flex justify-end gap-3">
-          <button
-            className="px-5 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition disabled:opacity-50"
-            onClick={onClose}
-            disabled={isPending}
-          >
+          <button className="px-5 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition disabled:opacity-50" onClick={onClose} disabled={isPending}>
             취소
           </button>
-          <button
-            className="px-5 py-2 bg-pink-500 rounded-lg hover:bg-pink-600 transition disabled:opacity-50 flex items-center gap-2"
-            onClick={handleSave}
-            disabled={isPending}
-          >
+          <button className="px-5 py-2 bg-pink-500 rounded-lg hover:bg-pink-600 transition disabled:opacity-50 flex items-center gap-2" onClick={handleSave} disabled={isPending}>
             {isPending ? (
               <>
                 <Upload className="animate-bounce" size={16} />

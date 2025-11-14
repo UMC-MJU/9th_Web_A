@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { getMyInfo } from "../apis/auth";
-import type { ResponseMyInfoDto } from "../types/auth";
 import { useAuth } from "../context/AuthContext";
 import { useMutation } from "@tanstack/react-query";
+import useGetMyInfo from "../hooks/queries/useGetMyInfo";
 
 const Navbar = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -14,39 +13,10 @@ const Navbar = () => {
     const closeSidebar = () => setIsSidebarOpen(false);
 
     const { accessToken, logout } = useAuth();
-    const [data, setData] = useState<ResponseMyInfoDto | null>(null);
-    const [nickname, setNickname] = useState<string | null>(null);
-
-    // 사용자 정보를 가져오는 함수
-    const fetchUserInfo = async () => {
-        try {
-        const response = await getMyInfo();
-        setData(response);
-        setNickname(response.data?.name ?? "사용자");
-        } catch (error) {
-        console.error("내 정보 가져오기 실패", error);
-        }
-    };
-
-    useEffect(() => {
-        if (accessToken) fetchUserInfo();
-    }, [accessToken]);
-
-    useEffect(() => {
-        const handleProfileUpdate = () => {
-        if (accessToken) fetchUserInfo();
-        };
-        window.addEventListener("profileUpdated", handleProfileUpdate);
-        return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
-    }, [accessToken]);
-
-    // accessToken이 없을 때 사용자 정보 초기화
-    useEffect(() => {
-    if (!accessToken) {
-        setNickname(null);
-        setData(null);
-    }
-    }, [accessToken]);
+    
+    // React Query로 사용자 정보 가져오기 (낙관적 업데이트 자동 반영)
+    const { data } = useGetMyInfo(accessToken);
+    const nickname = data?.data?.name ?? "사용자";
 
     // useMutation으로 로그아웃 처리
     const logoutMutation = useMutation({
@@ -83,7 +53,7 @@ const Navbar = () => {
 
                 {accessToken ? (
                 <>
-                    <span className="hidden sm:block text-sm md:text-base text-gray-300">{nickname ?? "사용자"}님 반갑습니다 👋</span>
+                    <span className="hidden sm:block text-sm md:text-base text-gray-300">{nickname}님 반갑습니다 👋</span>
                     <button
                     onClick={() => logoutMutation.mutate()}
                     disabled={logoutMutation.isPending}
