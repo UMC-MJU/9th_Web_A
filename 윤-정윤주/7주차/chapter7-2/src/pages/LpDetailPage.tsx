@@ -1,4 +1,3 @@
-// src/pages/LpDetailPage.tsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getLpDetail } from "../apis/lp";
@@ -44,7 +43,6 @@ export default function LpDetailPage() {
   const [editTagsList, setEditTagsList] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
 
-  // LP 데이터가 로드되면 편집 폼 초기화
   useEffect(() => {
     if (lp) {
       setEditTitle(lp.title);
@@ -53,7 +51,6 @@ export default function LpDetailPage() {
     }
   }, [lp]);
 
-  // 태그 관련 핸들러
   const handleAddTag = () => {
     const trimmedTag = tagInput.trim();
     if (trimmedTag && !editTagsList.includes(trimmedTag)) {
@@ -73,18 +70,20 @@ export default function LpDetailPage() {
     }
   };
 
-  // 좋아요 관련
-  const { mutate: likeMutate } = usePostLike();
-  const { mutate: disLikeMutate } = useDeleteLike();
+  // 좋아요 관련 - 낙관적 업데이트 적용
+  const { mutate: likeMutate } = usePostLike(me?.data.id);
+  const { mutate: disLikeMutate } = useDeleteLike(me?.data.id);
+  
+  // 이제 클릭 즉시 UI가 반응
   const handleLikeLp = () => likeMutate({ lpId: Number(lpId) });
   const handleDislikeLp = () => disLikeMutate({ lpId: Number(lpId) });
+  
   const isLiked = lp?.likes?.some((like) => like.userId === me?.data.id);
 
   // 댓글 관련 상태
   const [order, setOrder] = useState<PAGINATION_ORDER>(PAGINATION_ORDER.DESC);
   const [newComment, setNewComment] = useState("");
 
-  // 댓글 무한스크롤
   const {
     data,
     isFetchingNextPage,
@@ -98,7 +97,6 @@ export default function LpDetailPage() {
     if (inView && hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // 댓글 작성
   const createCommentMutation = useCreateComment(Number(lpId));
   const handleCreateComment = () => {
     if (!newComment.trim()) return;
@@ -108,7 +106,6 @@ export default function LpDetailPage() {
     );
   };
 
-  // LP 수정
   const { mutate: updateMutate, isPending: isUpdating } = useUpdateLp(
     Number(lpId)
   );
@@ -149,7 +146,6 @@ export default function LpDetailPage() {
     setIsEditMode(false);
   };
 
-  // LP 삭제
   const { mutate: deleteMutate } = useDeleteLp();
   const handleDelete = () => {
     if (!confirm("정말 이 LP를 삭제하시겠습니까?")) return;
@@ -176,7 +172,6 @@ export default function LpDetailPage() {
       </div>
     );
 
-  // 데이터 가공
   const authorName = lp.author?.name || "익명";
   const authorAvatar =
     lp.author?.avatar && lp.author.avatar.trim() !== ""
@@ -203,7 +198,6 @@ export default function LpDetailPage() {
     <div className="min-h-screen bg-[#0f1115] flex justify-center items-start py-12 px-4 text-white">
       <div className="w-full max-w-2xl bg-[#111217] rounded-2xl shadow-2xl overflow-hidden border border-gray-800">
         <div className="p-6 flex flex-col items-center">
-          {/* 헤더 (작성자 정보 + 수정/삭제 버튼) */}
           <LpHeader
             authorAvatar={authorAvatar}
             authorName={authorName}
@@ -217,7 +211,6 @@ export default function LpDetailPage() {
             onDelete={handleDelete}
           />
 
-          {/* 제목, 이미지, 본문 */}
           <LpContent
             title={lp.title}
             content={lp.content}
@@ -229,7 +222,6 @@ export default function LpDetailPage() {
             onContentChange={setEditContent}
           />
 
-          {/* 태그 */}
           <LpTags
             tags={tags}
             isEditMode={isEditMode}
@@ -241,7 +233,7 @@ export default function LpDetailPage() {
             onTagInputKeyDown={handleTagInputKeyDown}
           />
 
-          {/* 좋아요 */}
+          {/* 낙관적 업데이트 덕분에 즉시 반응 */}
           <LpLikes
             likes={likes}
             isLiked={!!isLiked}
@@ -249,12 +241,10 @@ export default function LpDetailPage() {
             onDislike={handleDislikeLp}
           />
 
-          {/* 작성/수정일 */}
           <div className="text-xs text-gray-500 mb-8">
             작성일: {createdAt} &nbsp;|&nbsp; 수정일: {updatedAt}
           </div>
 
-          {/* 댓글 영역 */}
           <LpCommentSection
             order={order}
             newComment={newComment}
@@ -262,10 +252,8 @@ export default function LpDetailPage() {
             onCommentChange={setNewComment}
             onSubmitComment={handleCreateComment}
           >
-            {/* 댓글 로딩 */}
             {isCommentLoading && <LpCommentSkeletonList count={3} />}
 
-            {/* 댓글 리스트 */}
             {comments.map((comment) => (
               <LpComment
                 key={comment.id}
@@ -275,11 +263,9 @@ export default function LpDetailPage() {
               />
             ))}
 
-            {/* 무한스크롤 감시 영역 */}
             <div ref={ref} className="h-10" />
             {isFetchingNextPage && <LpCommentSkeletonList count={2} />}
 
-            {/* 댓글 없을 때 */}
             {!hasNextPage && !isCommentLoading && comments.length > 0 && (
               <p className="text-center text-gray-500 mt-4">
                 모든 댓글을 불러왔습니다.

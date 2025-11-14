@@ -1,16 +1,66 @@
 import { useMutation } from "@tanstack/react-query";
 import { postLike } from "../../apis/lp";
 import { queryClient } from "../../App";
+import type { Lp } from "../../types/lp";
 
-function usePostLike() {
+function usePostLike(currentUserId?: number) {
     return useMutation({
         mutationFn: postLike,
+        
+        // 낙관적 업데이트: 서버 요청 전에 실행
+        onMutate: async ({ lpId }) => {
+            // 1. 진행 중인 쿼리 취소 (충돌 방지)
+            await queryClient.cancelQueries({ 
+                queryKey: ["lp", String(lpId)] 
+            });
+
+            // 2. 이전 데이터 백업 (롤백용)
+            const previousLp = queryClient.getQueryData<Lp>([
+                "lp", 
+                String(lpId)
+            ]);
+
+            // 3. 즉시 UI 업데이트 (낙관적으로!)
+            if (previousLp && currentUserId) {
+                queryClient.setQueryData<Lp>(
+                    ["lp", String(lpId)],
+                    (old) => {
+                        if (!old) return old;
+                        
+                        return {
+                            ...old,
+                            likes: [
+                                ...old.likes,
+                                {
+                                    id: Date.now(), // 임시 ID
+                                    userId: currentUserId,
+                                    lpId: lpId,
+                                }
+                            ]
+                        };
+                    }
+                );
+            }
+
+            // 4. 백업 데이터 반환 (에러 시 사용)
+            return { previousLp };
+        },
+
+        // 에러 발생 시: 이전 상태로 롤백
+        onError: (error, { lpId }, context) => {
+            if (context?.previousLp) {
+                queryClient.setQueryData(
+                    ["lp", String(lpId)],
+                    context.previousLp
+                );
+            }
+        },
+
+        // 성공 시: 서버 데이터로 최종 동기화
         onSuccess: (data) => {
-            // LP 상세 페이지 쿼리 invalidate
             queryClient.invalidateQueries({
                 queryKey: ["lp", String(data.data.lpId)],
             });
-            // LP 목록 페이지도 invalidate (좋아요 수 반영)
             queryClient.invalidateQueries({
                 queryKey: ["lps"],
             });
