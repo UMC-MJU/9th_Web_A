@@ -60,18 +60,18 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const logout = async () => {
     try {
-      await postLogout();
-      removeAccessTokenFromStorage();
-      removeRefreshTokenFromStorage();
-
-      setAccessToken(null);
-      setRefreshToken(null);
-      alert("로그아웃 성공");
+      await postLogout(); // 실패해도 문제 없음
     } catch (error) {
       console.log("로그아웃 오류", error);
-      alert("로그아웃 실패");
     }
+
+    removeAccessTokenFromStorage();
+    removeRefreshTokenFromStorage();
+
+    setAccessToken(null);
+    setRefreshToken(null);
   };
+
   return (
     <AuthContext.Provider value={{ accessToken, refreshToken, login, logout }}>
       {children}
