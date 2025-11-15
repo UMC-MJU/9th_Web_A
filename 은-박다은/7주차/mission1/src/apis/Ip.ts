@@ -32,3 +32,14 @@ export const getLpComments = async ({
   });
   return data;
 };
+
+export const createLP = async (body: {
+  title: string;
+  content: string;
+  thumbnail: string;
+  tags: string[];
+  published: boolean;
+}) => {
+  const { data } = await axiosInstance.post("/v1/lps", body);
+  return data;
+};
