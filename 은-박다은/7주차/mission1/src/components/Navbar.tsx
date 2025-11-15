@@ -2,14 +2,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "./Sidebar";
-import { getMyInfo } from "../apis/auth";
+import { deleteUser, getMyInfo } from "../apis/auth";
 import { useMutation } from "@tanstack/react-query";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { accessToken, logout } = useAuth();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [nickname, setNickname] = useState("사용자");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isLoggedIn = Boolean(accessToken);
 
@@ -36,6 +38,18 @@ const Navbar = () => {
     mutationFn: logout,
     onSuccess: () => {
       navigate("/login");
+    },
+  });
+
+  // 탈퇴 mutation
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: async () => {
+      await logout(); // 토큰 제거
+      navigate("/login");
+    },
+    onError: () => {
+      alert("탈퇴에 실패했습니다.");
     },
   });
 
@@ -126,7 +140,18 @@ const Navbar = () => {
       </nav>
 
       {/* Sidebar 항상 렌더링 */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onDeleteClick={() => setShowDeleteModal(true)} // 추가
+      />
+
+      {/* 탈퇴 확인 모달 */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => deleteMutation.mutate()}
+      />
     </>
   );
 };

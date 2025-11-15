@@ -29,7 +29,7 @@ const ProtectedLayout = () => {
 
       <div className="flex flex-1 pt-16">
         {/* 사이드바 */}
-        <Sidebar isOpen={true} onClose={() => {}} />
+        <Sidebar isOpen={true} onClose={() => {}} onDeleteClick={() => {}} />
 
         {/* 메인 콘텐츠 */}
         <main className="flex-1 ml-60 p-6 ">

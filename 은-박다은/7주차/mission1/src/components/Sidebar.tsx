@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onDeleteClick: () => void;
 }
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose, onDeleteClick }: SidebarProps) => {
   return (
     <aside
       className={`
@@ -73,7 +74,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       </nav>
 
       <div className="border-t border-gray-800 pt-6">
-        <button className="text-sm text-gray-400 hover:text-red-400 text-left w-full">
+        <button
+          onClick={onDeleteClick}
+          className="text-sm text-gray-400 hover:text-red-400 text-left w-full"
+        >
           탈퇴하기
         </button>
       </div>
