@@ -1,14 +1,16 @@
-import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import { Plus } from "lucide-react";
+import { useState } from "react";
+import LPWriteModal from "../components/LPWriteModal";
 
 const ProtectedLayout = () => {
   const { accessToken } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!accessToken) {
     return (
@@ -36,8 +38,13 @@ const ProtectedLayout = () => {
       </div>
 
       {/* 플로팅 버튼 */}
+      <LPWriteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+
       <button
-        onClick={() => navigate("/create")}
+        onClick={() => setIsModalOpen(true)}
         className="fixed bottom-6 right-6 bg-pink-500 hover:bg-pink-600 text-white rounded-full w-11 h-11 flex items-center justify-center shadow-lg transition-transform hover:scale-105"
       >
         <Plus size={28} />
