@@ -46,3 +46,13 @@ export const createLp = async (formData: FormData) => {
   });
   return data;
 };
+
+export const getMyWrittenLps = async () => {
+  const { data } = await axiosInstance.get("/v1/lps/user");
+  return data; // LP 목록 배열
+};
+
+export const getMyLikedLps = async () => {
+  const { data } = await axiosInstance.get("/v1/lps/likes/me");
+  return data; // LP 목록 배열
+};

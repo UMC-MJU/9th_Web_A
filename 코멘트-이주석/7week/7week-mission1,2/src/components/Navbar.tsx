@@ -1,9 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import { getMyInfo } from "../apis/auth";
-import type { ResponseMyInfoDto } from "../types/auth";
 import { FiSearch } from "react-icons/fi";
 
 interface NavbarProps {
@@ -13,20 +11,13 @@ interface NavbarProps {
 export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
   const { accessToken, logout } = useAuth();
   const navigate = useNavigate();
-  const [userName, setUserName] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!accessToken) return;
-      try {
-        const response: ResponseMyInfoDto = await getMyInfo();
-        setUserName(response.data?.name ?? "사용자");
-      } catch (err) {
-        console.error("유저 정보 불러오기 실패:", err);
-      }
-    };
-    fetchUser();
-  }, [accessToken]);
+  // ✅ Navbar가 직접 getMyInfo를 부르지 않고, React Query 캐시를 사용하도록 변경
+  const { data: myInfo } = useQuery({
+    queryKey: ["myInfo"],
+    queryFn: getMyInfo,
+    enabled: !!accessToken,
+  });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -65,7 +56,6 @@ export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             </svg>
           </button>
 
-          {/* 로고 텍스트 */}
           <Link
             to="/"
             className="text-2xl font-extrabold text-[#f72585] tracking-tight hover:opacity-90 transition-opacity"
@@ -99,7 +89,9 @@ export const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             <>
               <FiSearch size={18} />
               <span className="text-white mr-1 whitespace-nowrap">
-                {userName ? `${userName}님 반갑습니다.` : "환영합니다."}
+                {myInfo?.data?.name
+                  ? `${myInfo.data.name}님 반갑습니다.`
+                  : "환영합니다."}
               </span>
 
               <button
