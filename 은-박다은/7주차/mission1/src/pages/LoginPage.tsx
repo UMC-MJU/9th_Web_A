@@ -3,26 +3,27 @@ import { useAuth } from "../context/AuthContext";
 import useForm from "../hooks/useForm";
 import { validateSignin, type UserSigninInformation } from "../utils/validate";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 
 const LoginPage = () => {
-  const { login, accessToken } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || "/";
   const showAuthAlert = location.state?.showAuthAlert;
 
-  useEffect(() => {
-    if (showAuthAlert) {
-      alert("로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.");
-    }
-  }, [showAuthAlert]);
+  const { login, accessToken } = useAuth();
 
-  useEffect(() => {
-    if (accessToken) {
+  // ★ useMutation로 로그인 실행
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: () => {
       navigate(from, { replace: true });
-    }
-  }, [navigate, accessToken, from]);
+    },
+    onError: () => {
+      alert("로그인에 실패했습니다.");
+    },
+  });
 
   const { values, errors, touched, getInputProps } =
     useForm<UserSigninInformation>({
@@ -33,19 +34,32 @@ const LoginPage = () => {
       validate: validateSignin,
     });
 
-  const handleSubmit = async () => {
-    await login(values);
+  const handleSubmit = () => {
+    loginMutation.mutate(values);
   };
+
+  // 로그인 필요 경고 표시
+  useEffect(() => {
+    if (showAuthAlert) {
+      alert("로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.");
+    }
+  }, [showAuthAlert]);
+
+  // 이미 로그인된 경우 login 페이지 접근 금지
+  useEffect(() => {
+    if (accessToken) {
+      navigate(from, { replace: true });
+    }
+  }, [accessToken, navigate, from]);
 
   const handleGoogleLogin = () => {
     window.location.href =
       import.meta.env.VITE_SERVER_API_URL + "/v1/auth/google/login";
   };
 
-  // 오류가 하나라도 있거나, 입력값이 비어있으면 버튼을 비활성화
   const isDisabled: boolean =
-    Object.values(errors || {}).some((error: string) => error.length > 0) ||
-    Object.values(values).some((value: string) => value === "");
+    Object.values(errors || {}).some((err) => err.length > 0) ||
+    Object.values(values).some((v) => v === "");
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "./Sidebar";
 import { getMyInfo } from "../apis/auth";
+import { useMutation } from "@tanstack/react-query";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -31,10 +32,12 @@ const Navbar = () => {
     fetchMyInfo();
   }, [accessToken]);
 
-  const handleLogout = async () => {
-    await logout();
-    setNickname("사용자");
-  };
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      navigate("/login");
+    },
+  });
 
   return (
     <>
@@ -99,7 +102,7 @@ const Navbar = () => {
                   {nickname}님 반갑습니다 👋
                 </span>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => logoutMutation.mutate()}
                   className="hover:text-pink-400 transition"
                 >
                   로그아웃
