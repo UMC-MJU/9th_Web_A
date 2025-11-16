@@ -52,10 +52,44 @@ const MyPage = () => {
   const mutation = useMutation({
     mutationFn: (payload: { name: string; bio: string; avatar: string }) =>
       updateMyInfo(payload),
-    onSuccess: () => {
+
+    // 🔥 서버 응답 기다리기 전에 즉시 변경
+    onMutate: async (newData) => {
+      // 기존 요청 취소
+      await qc.cancelQueries({ queryKey: ["myInfo"] });
+
+      // 현재 캐시된 데이터 저장(롤백용)
+      const previous = qc.getQueryData(["myInfo"]);
+
+      // 캐시에 즉시 반영 (NavBar / MyPage 동시 반영됨)
+      qc.setQueryData(["myInfo"], (old: any) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            name: newData.name, // 즉시 닉네임 반영
+            bio: newData.bio,
+            avatar: newData.avatar,
+          },
+        };
+      });
+
+      return { previous };
+    },
+
+    // 🔥 실패 → 롤백
+    onError: (_err, _newData, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["myInfo"], context.previous);
+      }
+    },
+
+    // 🔥 서버 응답 후 동기화
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["myInfo"] });
       setEditMode(false);
-      alert("프로필이 수정되었습니다!");
     },
   });
 

@@ -14,7 +14,6 @@ const LpPage = () => {
 
   const { data, isPending, isError } = useGetLpDetail(Number(lpid));
 
-  /* 로딩 처리 */
   if (isPending) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -40,19 +39,48 @@ const LpPage = () => {
     );
   }
 
+  /* 로컬 상태 (Optimistic Update를 위해 분리) */
+  const [isLiked, setIsLiked] = useState(lp.isLiked);
+  const [likeCount, setLikeCount] = useState(lp.likes?.length ?? 0);
+
   const [editMode, setEditMode] = useState(false);
   const [title, setTitle] = useState(lp.title);
   const [content, setContent] = useState(lp.content);
   const [thumbnail, setThumbnail] = useState(lp.thumbnail);
   const [tags, setTags] = useState<string[]>(lp.tags.map((t: any) => t.name));
 
+  /* ❤️ 좋아요 - Optimistic Update */
   const likeMutation = useMutation({
-    mutationFn: () => (lp.isLiked ? removeLike(lp.id) : addLike(lp.id)),
-    onSuccess: () => {
+    mutationFn: () => (isLiked ? removeLike(lp.id) : addLike(lp.id)),
+
+    onMutate: async () => {
+      // 기존 쿼리 중단
+      await queryClient.cancelQueries({ queryKey: ["lpDetail", lp.id] });
+
+      // 이전 데이터 저장
+      const previous = queryClient.getQueryData(["lpDetail", lp.id]);
+
+      // 즉시 UI 변경
+      setIsLiked((prev: boolean) => !prev);
+      setLikeCount((prev: number) => (isLiked ? prev - 1 : prev + 1));
+
+      return { previous };
+    },
+
+    onError: (_, __, context) => {
+      // 실패 → 롤백
+      if (context?.previous) {
+        queryClient.setQueryData(["lpDetail", lp.id], context.previous);
+      }
+    },
+
+    onSettled: () => {
+      // 서버 데이터 동기화
       queryClient.invalidateQueries({ queryKey: ["lpDetail", lp.id] });
     },
   });
 
+  /* LP 삭제 */
   const deleteMutation = useMutation({
     mutationFn: () => deleteLp(lp.id),
     onSuccess: () => {
@@ -61,6 +89,7 @@ const LpPage = () => {
     },
   });
 
+  /* LP 수정 */
   const updateMutation = useMutation({
     mutationFn: (body: any) => updateLp({ lpId: lp.id, body }),
     onSuccess: () => {
@@ -82,10 +111,8 @@ const LpPage = () => {
   const authorName = lp.author?.name ?? "작성자";
   const createdAtDate = new Date(lp.createdAt);
   const uploadedLabel = `${Math.floor(
-    (Date.now() - createdAtDate.getTime()) / (1000 * 60 * 60 * 24)
+    (Date.now() - createdAtDate.getTime()) / 86400000
   )}일 전`;
-
-  const likesCount = lp.likes?.length ?? 0;
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center pt-24 pb-16 px-4 gap-8">
@@ -102,26 +129,25 @@ const LpPage = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-gray-400">
-            {!editMode && (
-              <>
-                <button
-                  onClick={() => setEditMode(true)}
-                  className="p-1 hover:text-pink-400 transition"
-                >
-                  <Edit3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => deleteMutation.mutate()}
-                  className="p-1 hover:text-pink-400 transition"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </>
-            )}
-          </div>
+          {!editMode && (
+            <div className="flex items-center gap-3 text-gray-400">
+              <button
+                onClick={() => setEditMode(true)}
+                className="p-1 hover:text-pink-400 transition"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate()}
+                className="p-1 hover:text-pink-400 transition"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
+        {/* 제목 */}
         {editMode ? (
           <input
             className="w-full bg-[#2b2b2b] p-3 rounded-lg mb-6"
@@ -132,6 +158,7 @@ const LpPage = () => {
           <h1 className="text-2xl font-semibold mb-6">{lp.title}</h1>
         )}
 
+        {/* 이미지 */}
         {editMode ? (
           <div className="mb-6">
             <p className="text-sm text-gray-400 mb-2">파일 선택</p>
@@ -162,6 +189,7 @@ const LpPage = () => {
           </div>
         )}
 
+        {/* 내용 */}
         {editMode ? (
           <textarea
             className="w-full bg-[#2b2b2b] p-3 rounded-lg mb-6"
@@ -175,6 +203,7 @@ const LpPage = () => {
           </p>
         )}
 
+        {/* 태그 */}
         {editMode ? (
           <input
             className="w-full bg-[#2b2b2b] p-3 rounded-lg mb-6"
@@ -196,13 +225,15 @@ const LpPage = () => {
           </div>
         )}
 
+        {/* ❤️ 좋아요 (Optimistic UI) */}
         <div
           onClick={() => likeMutation.mutate()}
           className="flex justify-center items-center gap-2 text-pink-400 cursor-pointer"
         >
-          ❤️ {likesCount}
+          {isLiked ? "💖" : "🤍"} {likeCount}
         </div>
 
+        {/* 수정 저장 버튼 */}
         {editMode && (
           <div className="flex justify-center gap-4 mt-8">
             <button

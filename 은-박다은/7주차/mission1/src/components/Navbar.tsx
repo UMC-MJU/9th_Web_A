@@ -1,56 +1,40 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "./Sidebar";
 import { deleteUser, getMyInfo } from "../apis/auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { accessToken, logout } = useAuth();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [nickname, setNickname] = useState("사용자");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isLoggedIn = Boolean(accessToken);
 
-  useEffect(() => {
-    if (!accessToken) {
-      setNickname("사용자");
-      return;
-    }
+  // ⭐ React Query로 nickname 가져오도록 변경
+  const { data: myInfo } = useQuery({
+    queryKey: ["myInfo"],
+    queryFn: getMyInfo,
+    enabled: !!accessToken,
+  });
 
-    const fetchMyInfo = async () => {
-      try {
-        const res = await getMyInfo();
-        setNickname(res.data?.name || "사용자");
-      } catch (e) {
-        console.error("내 정보 불러오기 실패", e);
-        setNickname("사용자");
-      }
-    };
-
-    fetchMyInfo();
-  }, [accessToken]);
+  const nickname = myInfo?.data?.name ?? "사용자";
 
   const logoutMutation = useMutation({
     mutationFn: logout,
-    onSuccess: () => {
-      navigate("/login");
-    },
+    onSuccess: () => navigate("/login"),
   });
 
-  // 탈퇴 mutation
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: async () => {
-      await logout(); // 토큰 제거
+      await logout();
       navigate("/login");
     },
-    onError: () => {
-      alert("탈퇴에 실패했습니다.");
-    },
+    onError: () => alert("탈퇴에 실패했습니다."),
   });
 
   return (
@@ -85,13 +69,11 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* 오른쪽: 검색 + 로그인/회원가입 */}
+          {/* 오른쪽 */}
           <div className="flex items-center gap-4 text-sm">
-            {/* 🔍 검색 버튼 */}
             <button
               onClick={() => navigate("/search")}
               className="p-2 hover:text-pink-400 transition"
-              aria-label="검색"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -139,14 +121,14 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Sidebar 항상 렌더링 */}
+      {/* Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        onDeleteClick={() => setShowDeleteModal(true)} // 추가
+        onDeleteClick={() => setShowDeleteModal(true)}
       />
 
-      {/* 탈퇴 확인 모달 */}
+      {/* 탈퇴 모달 */}
       <DeleteConfirmModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
