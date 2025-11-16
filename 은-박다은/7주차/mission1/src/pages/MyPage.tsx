@@ -13,7 +13,7 @@ const MyPage = () => {
 
   const [editMode, setEditMode] = useState(false);
 
-  // 🔥 react-query로 유저 정보 관리
+  // react-query로 유저 정보 관리
   const { data } = useQuery({
     queryKey: ["myInfo"],
     queryFn: getMyInfo,
@@ -28,7 +28,7 @@ const MyPage = () => {
 
   // 수정 버튼 눌렀을 때 값 채우기
   const openEdit = () => {
-    if (!user) return; // 🔥 안전하게 막아줌
+    if (!user) return; // 안전하게 막아줌
 
     setName(user.name);
     setBio(user.bio ?? "");
@@ -107,7 +107,7 @@ const MyPage = () => {
         </div>
       </div>
 
-      {/* 🔥 프로필 수정 모달 (전체 화면 중앙에 뜸) */}
+      {/* 프로필 수정 모달 (전체 화면 중앙에 뜸) */}
       {editMode && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-[#1a1a1a] p-6 rounded-xl w-[350px] shadow-lg relative">
