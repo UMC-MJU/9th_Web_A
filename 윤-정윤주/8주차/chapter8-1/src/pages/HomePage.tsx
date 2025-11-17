@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-// import useGetLpList from "../hooks/queries/useGetLpList";
+import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import useGetInfiniteLpList from "../hooks/queries/useGetInfiniteLpList";
 import { PAGINATION_ORDER } from "../enums/common";
@@ -7,8 +6,6 @@ import LpCard from "../components/LpCard/LpCard";
 import LpCardSkeletonList from "../components/LpCard/LpCardSkeletionList";
 
 const HomePage = () => {
-  const [search, setSearch] = useState("");
-
   const {
     data: lps,
     isFetching,
@@ -17,7 +14,7 @@ const HomePage = () => {
     isFetchingNextPage,
     fetchNextPage,
     isError,
-  } = useGetInfiniteLpList(10, search, PAGINATION_ORDER.ASC)
+  } = useGetInfiniteLpList(10, "", PAGINATION_ORDER.ASC);
 
   const { ref, inView } = useInView({
     threshold: 0,
