@@ -3,14 +3,19 @@ import { PAGINATION_ORDER } from "../enums/common";
 import useGetInfiniteLpList from "../hooks/queries/useGetInfiniteLpList";
 import LpCard from "../components/LpCard";
 import LpCardSkeleton from "../components/LpCardSkeleton";
+import { SEARCH_DEBOUNCE_DELAY } from "../constants/delay";
+import useDebounce from "../hooks/useDebounce";
 
 const HomePage = () => {
+  const [search, setSearch] = useState("");
+  const debouncedValue = useDebounce(search ?? "", SEARCH_DEBOUNCE_DELAY);
+
   const [order, setOrder] = useState<PAGINATION_ORDER>(PAGINATION_ORDER.DESC);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
-    useGetInfiniteLpList(12, "", order);
+    useGetInfiniteLpList(12, debouncedValue, order);
 
   const [showSkeleton, setShowSkeleton] = useState(true);
-  const [showNextSkeleton, setShowNextSkeleton] = useState(false); // ✅ 스크롤용 스켈레톤 표시
+  const [showNextSkeleton, setShowNextSkeleton] = useState(false);
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -43,6 +48,14 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white px-8 pb-10 pl-64">
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search..."
+        className="mt-8 w-[280px] mx-auto block bg-[#1f1f1f] text-white px-4 py-2
+    rounded-lg border border-gray-700 focus:border-pink-500 outline-none transition"
+      />
+
       {/* 정렬 버튼 */}
       <div className="flex justify-end mb-6 mt-6">
         <div className="inline-flex rounded-md overflow-hidden border border-gray-600">
