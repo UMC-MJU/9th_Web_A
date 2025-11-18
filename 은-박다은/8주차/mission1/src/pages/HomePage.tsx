@@ -5,6 +5,7 @@ import LpCard from "../components/LpCard";
 import LpCardSkeleton from "../components/LpCardSkeleton";
 import { SEARCH_DEBOUNCE_DELAY } from "../constants/delay";
 import useDebounce from "../hooks/useDebounce";
+import useThrottleFn from "../hooks/useThrottle";
 
 const HomePage = () => {
   const [search, setSearch] = useState("");
@@ -34,17 +35,25 @@ const HomePage = () => {
 
   const lpList = data?.pages.flatMap((page) => page.data.data) ?? [];
 
+  const throttledFetchNextPage = useThrottleFn(() => {
+    if (hasNextPage) fetchNextPage();
+  }, 500);
+
   useEffect(() => {
     if (!observerRef.current) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage) fetchNextPage();
+        if (entries[0].isIntersecting) {
+          throttledFetchNextPage();
+        }
       },
       { threshold: 1.0 }
     );
+
     observer.observe(observerRef.current);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage]);
+  }, [throttledFetchNextPage]);
 
   return (
     <div className="min-h-screen bg-black text-white px-8 pb-10 pl-64">
