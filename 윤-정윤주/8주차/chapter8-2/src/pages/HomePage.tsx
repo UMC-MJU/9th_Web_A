@@ -4,6 +4,7 @@ import useGetInfiniteLpList from "../hooks/queries/useGetInfiniteLpList";
 import { PAGINATION_ORDER } from "../enums/common";
 import LpCard from "../components/LpCard/LpCard";
 import LpCardSkeletonList from "../components/LpCard/LpCardSkeletionList";
+import { useThrottleCallback } from "../hooks/useThrottleCallback";
 
 const HomePage = () => {
   const {
@@ -20,15 +21,20 @@ const HomePage = () => {
     threshold: 0,
   });
 
-  useEffect(() => {
-    if (inView) {
-      !isFetching && hasNextPage && fetchNextPage();
+  // callback-throttle 적용: 1초 간격으로 fetchNextPage 제한
+  const throttledFetch = useThrottleCallback(() => {
+    if (!isFetching && hasNextPage) {
+      fetchNextPage();
+      console.log("fetchNextPage 호출:", new Date().toLocaleTimeString());
     }
-  }, [inView, isFetching, hasNextPage, fetchNextPage]);
+  }, 100);
 
-  if (isError) {
-    return <div className="mt-20">Error</div>;
-  }
+
+  useEffect(() => {
+    if (inView) throttledFetch();
+  }, [inView, throttledFetch]);
+
+  if (isError) return <div className="mt-20">Error</div>;
 
   return (
     <div className="p-5 pt-6">
