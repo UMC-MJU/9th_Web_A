@@ -1,0 +1,132 @@
+import { useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import useForm from "../hooks/useForm";
+import { validateSignin, type UserSigninInformation } from "../utils/validate";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+
+const LoginPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
+  const showAuthAlert = location.state?.showAuthAlert;
+
+  const { login, accessToken } = useAuth();
+
+  // ★ useMutation로 로그인 실행
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: () => {
+      navigate(from, { replace: true });
+    },
+    onError: () => {
+      alert("로그인에 실패했습니다.");
+    },
+  });
+
+  const { values, errors, touched, getInputProps } =
+    useForm<UserSigninInformation>({
+      initialValue: {
+        email: "",
+        password: "",
+      },
+      validate: validateSignin,
+    });
+
+  const handleSubmit = () => {
+    loginMutation.mutate(values);
+  };
+
+  // 로그인 필요 경고 표시
+  useEffect(() => {
+    if (showAuthAlert) {
+      alert("로그인이 필요한 서비스입니다. 로그인 후 이용해주세요.");
+    }
+  }, [showAuthAlert]);
+
+  // 이미 로그인된 경우 login 페이지 접근 금지
+  useEffect(() => {
+    if (accessToken) {
+      navigate(from, { replace: true });
+    }
+  }, [accessToken, navigate, from]);
+
+  const handleGoogleLogin = () => {
+    window.location.href =
+      import.meta.env.VITE_SERVER_API_URL + "/v1/auth/google/login";
+  };
+
+  const isDisabled: boolean =
+    Object.values(errors || {}).some((err) => err.length > 0) ||
+    Object.values(values).some((v) => v === "");
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
+      <div className="w-[320px] flex flex-col items-center gap-4">
+        <h2 className="text-xl font-semibold mb-2">로그인</h2>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="flex items-center justify-center gap-2 w-full border border-gray-500 py-2 rounded-md hover:bg-gray-800 transition"
+        >
+          <img
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            alt="Google Logo"
+            className="w-5 h-5"
+          />
+          <span>구글 로그인</span>
+        </button>
+
+        <div className="flex items-center w-full my-2">
+          <hr className="flex-1 border-gray-600" />
+          <span className="mx-3 text-gray-400 text-sm">OR</span>
+          <hr className="flex-1 border-gray-600" />
+        </div>
+        <input
+          {...getInputProps("email")}
+          type="email"
+          placeholder="이메일을 입력해주세요"
+          className={`w-full px-3 py-2 border rounded-md bg-transparent text-sm text-white
+          focus:outline-none focus:border-[#807bff]
+          ${
+            errors?.email && touched?.email
+              ? "border-red-500 bg-red-900/20"
+              : "border-gray-500"
+          }`}
+        />
+        {errors?.email && touched?.email && (
+          <p className="text-red-500 text-xs -mt-2">{errors.email}</p>
+        )}
+        <input
+          {...getInputProps("password")}
+          type="password"
+          placeholder="비밀번호를 입력해주세요"
+          className={`w-full px-3 py-2 border rounded-md bg-transparent text-sm text-white
+          focus:outline-none focus:border-[#807bff]
+          ${
+            errors?.password && touched?.password
+              ? "border-red-500 bg-red-900/20"
+              : "border-gray-500"
+          }`}
+        />
+        {errors?.password && touched?.password && (
+          <p className="text-red-500 text-xs -mt-2">{errors.password}</p>
+        )}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isDisabled}
+          className="w-full bg-gray-700 text-white py-2 rounded-md text-sm font-medium 
+                   hover:bg-[#807bff] transition-colors 
+                   disabled:bg-gray-500 disabled:cursor-not-allowed"
+        >
+          로그인
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
