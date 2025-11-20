@@ -7,19 +7,37 @@ const Sidebar = () => {
 
   // ESC
   useEffect(() => {
+    // ESC 키 닫기 핸들러
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        close();
-      }
+      if (e.key === "Escape") close();
     };
 
     window.addEventListener("keydown", handleKeyDown);
 
-    // 메모리 누수 방지: 언마운트 시 clean up
+    const main = document.querySelector("main");
+
+    if (isOpen) {
+      // body 스크롤 방지
+      document.body.style.overflow = "hidden";
+
+      // main 스크롤 방지 (무한스크롤이 여기서 멈춤)
+      if (main) main.style.overflow = "hidden";
+    } else {
+      // body 스크롤 복구
+      document.body.style.overflow = "auto";
+
+      // main 스크롤 복구 (무한스크롤 정상 재작동)
+      if (main) main.style.overflow = "auto";
+    }
+
+    // cleanup
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "auto";
+
+      if (main) main.style.overflow = "auto";
     };
-  }, [close]);
+  }, [isOpen, close]);
 
   return (
     <aside

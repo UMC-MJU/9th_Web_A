@@ -108,6 +108,16 @@ const HomePage = () => {
 
       <div ref={observerRef} className="h-12" />
     </div>
+    //   <div className="p-6 space-y-4">
+    //     {[...Array(20)].map((_, i) => (
+    //       <p key={i}>
+    //         Lorem ipsum dolor sit amet consectetur adipisicing elit. Numquam, quam
+    //         commodi? Autem accusamus molestias quod. Fugit excepturi
+    //         exercitationem, consequuntur rerum, repellat nemo vel esse architecto
+    //         nihil, amet voluptatibus molestiae?
+    //       </p>
+    //     ))}
+    //   </div>
   );
 };
 
