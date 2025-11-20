@@ -1,8 +1,25 @@
 import { Link } from "react-router-dom";
 import { useSidebarContext } from "../context/SidebarContext";
+import { useEffect } from "react";
 
 const Sidebar = () => {
   const { isOpen, close } = useSidebarContext();
+
+  // ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        close();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    // 메모리 누수 방지: 언마운트 시 clean up
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [close]);
 
   return (
     <aside
