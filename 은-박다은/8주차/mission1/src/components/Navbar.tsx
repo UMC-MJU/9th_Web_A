@@ -5,16 +5,18 @@ import Sidebar from "./Sidebar";
 import { deleteUser, getMyInfo } from "../apis/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import { useSidebarContext } from "../context/SidebarContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { accessToken, logout } = useAuth();
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const { toggle } = useSidebarContext(); // ⭐ 사이드바 토글만 추가
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isLoggedIn = Boolean(accessToken);
 
-  // ⭐ React Query로 nickname 가져오도록 변경
+  // ⭐ React Query로 nickname 가져오기
   const { data: myInfo } = useQuery({
     queryKey: ["myInfo"],
     queryFn: getMyInfo,
@@ -41,18 +43,10 @@ const Navbar = () => {
     <>
       <nav className="fixed top-0 left-0 w-full bg-[#141414] text-white shadow-md z-50">
         <div className="flex justify-between items-center px-6 py-4">
-          {/* 왼쪽: 햄버거 + 로고 */}
           <div className="flex items-center gap-3">
-            <button
-              className="p-2 hover:bg-gray-800 rounded"
-              onClick={() => setSidebarOpen((p) => !p)}
-            >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 48 48"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+            <button className="p-2 hover:bg-gray-800 rounded" onClick={toggle}>
+              {/* 햄버거 아이콘 */}
+              <svg width="22" height="22" viewBox="0 0 48 48">
                 <path
                   fill="none"
                   stroke="currentColor"
@@ -122,11 +116,7 @@ const Navbar = () => {
       </nav>
 
       {/* Sidebar */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onDeleteClick={() => setShowDeleteModal(true)}
-      />
+      <Sidebar />
 
       {/* 탈퇴 모달 */}
       <DeleteConfirmModal
