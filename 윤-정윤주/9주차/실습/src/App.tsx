@@ -1,10 +1,10 @@
 import './App.css'
-import UseReducerPage from './useReducer/UseReducerPage'
+import UseReducerCompany from './useReducer/UseReducerCompany'
 
 function App() {
   return (
     <>
-      <UseReducerPage />
+      <UseReducerCompany />
     </>
   )
 }
