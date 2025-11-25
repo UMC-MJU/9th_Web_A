@@ -1,18 +1,18 @@
-import { useDispatch, useSelector } from "../hooks/useCustomRedux";
-import { closeModal } from "../slices/modalSlice";
-import { clearCart } from "../slices/cartSlice";
+import { useModalActions, useModalInfo } from "../hooks/useModalStore";
+import { useCartActions } from "../hooks/useCartStore";
 
 const Modal = () => {
-    const dispatch = useDispatch();
-    const { isOpen } = useSelector((state) => state.modal);
+    const { isOpen } = useModalInfo();
+    const { closeModal } = useModalActions();
+    const { clearCart } = useCartActions();
 
     const handleCloseModal = () => {
-        dispatch(closeModal());
+        closeModal();
     };
 
     const handleConfirm = () => {
-        dispatch(clearCart());
-        dispatch(closeModal());
+        clearCart();
+        closeModal();
     };
 
     if (!isOpen) return null;
@@ -25,7 +25,6 @@ const Modal = () => {
                 onClick={handleCloseModal}
             />
 
-            
             {/* 모달 창 */}
             <div className="fixed inset-0 flex items-center justify-center z-50">
                 <div className="bg-white rounded-lg p-8 shadow-xl max-w-md w-full mx-4">
