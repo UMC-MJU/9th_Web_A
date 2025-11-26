@@ -1,0 +1,19 @@
+import { configureStore } from "@reduxjs/toolkit";
+import cartReducer from "../slices/cartSlice";
+
+// 1. 저장소 생성
+function createStore() {
+  const store = configureStore({
+    // 2. 리듀서 설정
+    reducer: { cart: cartReducer },
+  });
+
+  return store;
+}
+
+// sotre를 활용할 수 있도록 내보내야함
+// 여기서 실행해서 스토이럴 빼줌
+// 싱글톤패턴
+const store = createStore();
+
+export default store;
