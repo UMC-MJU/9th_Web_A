@@ -1,25 +1,16 @@
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "../store/store";
-import { openModal } from "../slices/modalSlice";
+import { useCartStore } from "../hooks/useCartStore";
+import { useModalStore } from "../hooks/useModalStore";
 
 const PriceBox = () => {
-  const { total } = useSelector((state: RootState) => state.cart);
-  const dispatch = useDispatch();
-
-  const handleOpenModal = () => {
-    dispatch(openModal());
-  };
+  const { total } = useCartStore();
+  const { open } = useModalStore();
 
   return (
     <div className="p-12 flex justify-between">
-      <div>
-        <button
-          onClick={handleOpenModal}
-          className="border p-4 rounded-tr-md cursor-pointer"
-        >
-          장바구니 초기화
-        </button>
-      </div>
+      <button onClick={open} className="border p-4 rounded-md cursor-pointer">
+        장바구니 비우기
+      </button>
+
       <div>총 가격: {total} 원</div>
     </div>
   );
